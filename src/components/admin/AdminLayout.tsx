@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import {
   Settings,
   LayoutDashboard,
