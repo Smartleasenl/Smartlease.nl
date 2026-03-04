@@ -262,11 +262,29 @@ export function KeuzehulpPage() {
   const canProceed = step === 0 ? prefs.vehicleType !== '' : true;
   const isResults = step >= TOTAL;
 
+  // ─── Stap 2 (carrosserie) overslaan voor bedrijfsauto ──────────────────────
+  const isBedrijf = prefs.vehicleType === 'bedrijf';
+
   const goNext = () => {
-    if (step < TOTAL - 1) { setStep(step + 1); scrollTop(); }
-    else runSearch();
+    if (step < TOTAL - 1) {
+      // Sla stap 2 (type/carrosserie) over als bedrijfsauto gekozen
+      const nextStep = step === 1 && isBedrijf ? 3 : step + 1;
+      setStep(nextStep);
+      scrollTop();
+    } else {
+      runSearch();
+    }
   };
-  const goPrev = () => { if (step > 0) { setStep(step - 1); scrollTop(); } };
+
+  const goPrev = () => {
+    if (step > 0) {
+      // Sla stap 2 over bij teruggaan als bedrijfsauto gekozen
+      const prevStep = step === 3 && isBedrijf ? 1 : step - 1;
+      setStep(prevStep);
+      scrollTop();
+    }
+  };
+
   const goBack = () => { setStep(TOTAL - 1); setResults([]); scrollTop(); };
   const doReset = () => {
     setStep(0);
@@ -293,8 +311,8 @@ export function KeuzehulpPage() {
     try {
       const params: any = { per_page: 80, sort: 'nieuwste' };
 
-      // Vehicle type filter
-      if (prefs.vehicleType === 'bedrijf' && prefs.carrosserie.length === 0) {
+      // Vehicle type filter: bedrijfsauto zonder expliciete carrosserie keuze → forceer Bedrijfswagen
+      if (isBedrijf && prefs.carrosserie.length === 0) {
         params.categorie = 'Bedrijfswagen';
       }
 
@@ -428,14 +446,14 @@ export function KeuzehulpPage() {
     </div>
   );
 
-  // ─── Step 2: Carrosserie ──────────────────────────────────────────────────
+  // ─── Step 2: Carrosserie (alleen voor personenauto's) ─────────────────────
 
   const stepType = () => (
     <div>
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">Wat voor type auto zoek je?</h2>
       <p className="text-sm text-gray-500 mb-5">Selecteer één of meerdere types</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {TYPES.map((t) => {
+        {TYPES.filter((t) => t.value !== 'Bedrijfswagen').map((t) => {
           const sel = prefs.carrosserie.includes(t.value);
           return (
             <button
@@ -759,7 +777,12 @@ export function KeuzehulpPage() {
           {!isResults && (
             <div className="px-5 pb-5 flex justify-between items-center">
               {step < TOTAL - 1 ? (
-                <button onClick={() => { setStep(step + 1); scrollTop(); }}
+                <button onClick={() => {
+                  // Overslaan houdt ook rekening met bedrijfsauto skip
+                  const nextStep = step === 1 && isBedrijf ? 3 : step + 1;
+                  setStep(nextStep);
+                  scrollTop();
+                }}
                   className="text-xs text-gray-400 hover:text-gray-600">
                   Overslaan →
                 </button>
