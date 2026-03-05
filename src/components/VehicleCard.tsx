@@ -39,9 +39,9 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
     return new Intl.NumberFormat('nl-NL').format(km) + ' km';
   };
 
-  const imageUrl = vehicle.external_id
-    ? proxyThumb(vehicle.external_id)
-    : vehicle.small_picture || null;
+const imageUrl = vehicle.external_id && vehicle.small_picture
+  ? proxyThumb(vehicle.external_id)
+  : vehicle.small_picture || null;
 
   const showPlaceholder = !imageUrl || imgError;
 
