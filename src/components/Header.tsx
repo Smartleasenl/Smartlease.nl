@@ -75,7 +75,7 @@ export function Header() {
           </div>
           <div className="flex items-center space-x-2">
             {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
-            <span className="font-semibold text-gray-700">4,9 reviews</span>
+            <Link to="/reviews" className="font-semibold text-gray-700 hover:text-smartlease-teal transition-colors cursor-pointer">4,9 reviews</Link>
           </div>
         </div>
       </div>
