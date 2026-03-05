@@ -37,6 +37,8 @@ export interface SearchParams {
   merk?: string;
   model?: string;
   categorie?: string;
+  categorie_not?: string;
+  categorie_in?: string;
   brandstof?: string;
   transmissie?: string;
   kleur?: string;

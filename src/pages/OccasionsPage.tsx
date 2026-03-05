@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Filters } from '../components/Filters';
 import { VehicleGrid } from '../components/VehicleGrid';
 import { vehicleApi } from '../services/api';
@@ -14,6 +14,9 @@ function parseURL(search: string) {
   sp.forEach((value, key) => {
     if (key === 'page') page = parseInt(value) || 1;
     else if (key === 'sort') sort = value;
+    else if (key === 'bodytype' || key === 'fuel' || key === 'type') {
+      // Skip these - we handle them separately
+    }
     else filters[key] = value;
   });
   return { filters, page, sort };
@@ -33,6 +36,7 @@ function buildQS(filters: SearchParams, page: number, sort: string) {
 export function OccasionsPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const initial = useRef(parseURL(location.search));
   const [filters, setFilters] = useState<SearchParams>(initial.current.filters);
@@ -40,6 +44,47 @@ export function OccasionsPage() {
   const [currentSort, setCurrentSort] = useState(initial.current.sort || 'nieuwste');
   const [searchData, setSearchData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const urlBodytype = searchParams.get('bodytype');
+    const urlFuel = searchParams.get('fuel');
+    const urlType = searchParams.get('type');
+
+    if (!urlBodytype && !urlFuel && !urlType) return;
+
+    setCurrentPage(1);
+
+    setFilters(prev => {
+      const newFilters = { ...prev };
+
+      if (urlBodytype === 'personenauto') {
+        newFilters.categorie = '__PERSONENAUTO__';
+      } else if (urlBodytype === 'bedrijfsauto') {
+        newFilters.categorie = 'Bedrijfswagen';
+      } else if (urlBodytype === 'motor') {
+        newFilters.categorie = '__MOTOR__';
+      } else if (prev.categorie) {
+        delete newFilters.categorie;
+      }
+
+      if (urlFuel === 'elektrisch') {
+        newFilters.brandstof = 'Electro';
+      } else if (prev.brandstof) {
+        delete newFilters.brandstof;
+      }
+
+      if (urlType === 'marge') {
+        newFilters.btw_marge = 'marge';
+      } else if (urlType === 'occasion') {
+        newFilters.kmstand_min = 1;
+      } else {
+        if (prev.btw_marge) delete newFilters.btw_marge;
+        if (prev.kmstand_min) delete newFilters.kmstand_min;
+      }
+
+      return newFilters;
+    });
+  }, [searchParams.get('bodytype'), searchParams.get('fuel'), searchParams.get('type')]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -59,9 +104,20 @@ export function OccasionsPage() {
 
   useEffect(() => {
     setLoading(true);
+
+    const searchFilters = { ...filters };
+
+    if (searchFilters.categorie === '__PERSONENAUTO__') {
+      delete searchFilters.categorie;
+      searchFilters.categorie_not = 'Bedrijfswagen,Motorscooter,Trike';
+    } else if (searchFilters.categorie === '__MOTOR__') {
+      delete searchFilters.categorie;
+      searchFilters.categorie_in = 'Motorscooter,Trike';
+    }
+
     vehicleApi
       .search({
-        ...filters,
+        ...searchFilters,
         sort: currentSort || undefined,
         page: currentPage,
         per_page: 24,
