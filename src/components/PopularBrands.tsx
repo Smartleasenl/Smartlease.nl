@@ -18,24 +18,27 @@ const brands = [
 const leaseTypes = [
   {
     title: 'Financial Lease',
-    description: 'Kies uit 60.000+ auto\'s',
+    description: 'Direct eigenaar, maximaal fiscaal voordeel',
     image: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80',
-    link: '/aanbod',
+    link: '/financial-lease/wat-is-financial-lease',
+    btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
   },
   {
     title: 'Operational Lease',
-    description: 'Volledig zakelijk aftrekbaar',
+    description: 'All-in maandprijs, volledig ontzorgd',
     image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80',
+    link: '/meer-informatie/verschillende-leasevormen',
+    btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
-    link: '/aanbod',
   },
   {
     title: 'Equipment Lease',
-    description: 'Machines & bedrijfsmiddelen',
+    description: 'Machines & bedrijfsmiddelen financieren',
     image: 'https://images.unsplash.com/photo-1504222490345-c075b6008014?auto=format&fit=crop&w=800&q=80',
+    link: '/financial-lease/equipment-lease',
+    btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
-    link: '/aanbod',
   },
 ];
 
@@ -48,7 +51,7 @@ export function PopularBrands() {
 
   return (
     <>
-      {/* Lease types - FIRST */}
+      {/* Lease types */}
       <section className="py-14 md:py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 reveal">
@@ -83,7 +86,7 @@ export function PopularBrands() {
                     {lease.description}
                   </p>
                   <span className="inline-flex items-center bg-smartlease-teal hover:bg-teal-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition w-fit shadow-lg group-hover:shadow-xl">
-                    Bekijk aanbod →
+                    {lease.btnLabel}
                   </span>
                 </div>
               </button>
@@ -92,7 +95,7 @@ export function PopularBrands() {
         </div>
       </section>
 
-      {/* Populaire merken - SECOND */}
+      {/* Populaire merken */}
       <section className="py-14 md:py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 reveal">
