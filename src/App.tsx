@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
 import { OccasionsPage } from './pages/OccasionsPage';
 import { VehicleDetailPage } from './pages/VehicleDetailPage';
@@ -45,6 +46,7 @@ function PublicLayout() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* ─── Admin login (geen layout) ── */}
         <Route path="/admin/login" element={<LoginPage />} />
