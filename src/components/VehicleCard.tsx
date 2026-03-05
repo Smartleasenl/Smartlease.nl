@@ -56,13 +56,19 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
         ) : (
           <>
-            <img
-              src={imageUrl!}
-              alt={`${vehicle.merk} ${vehicle.model}`}
-              className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-              loading="lazy"
-              onError={() => setImgError(true)}
-            />
+<img
+  src={imageUrl!}
+  alt={`${vehicle.merk} ${vehicle.model}`}
+  className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+  loading="lazy"
+  onError={() => setImgError(true)}
+  onLoad={(e) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth === 0 || img.naturalWidth < 10) {
+      setImgError(true);
+    }
+  }}
+/>
             {/* Gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </>
