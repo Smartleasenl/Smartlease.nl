@@ -127,52 +127,59 @@ export function Header() {
               {NAV_ITEMS.map((item) => {
                 const isOpen = openDropdown === item.dropdownKey;
 
-                // ── AANBOD dropdown (statisch) ──
-                if (item.dropdownKey === 'aanbod') {
-                  const isActive = location.pathname === '/aanbod';
-                  return (
-                    <div key={item.to} className="relative">
-                      <button
-                        onClick={() => setOpenDropdown(isOpen ? null : 'aanbod')}
-                        className={`flex items-center gap-1 font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
-                      >
-                        {item.label}
-                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                        {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
-                      </button>
+// ── AANBOD dropdown (statisch) ──
+if (item.dropdownKey === 'aanbod') {
+  const isActive = location.pathname === '/aanbod';
+  return (
+    <div key={item.to} className="relative">
+      <div className="flex items-center gap-0.5">
+        <Link
+          to="/aanbod"
+          className={`font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+        >
+          {item.label}
+        </Link>
+        <button
+          onClick={() => setOpenDropdown(isOpen ? null : 'aanbod')}
+          className={`p-0.5 transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+        >
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+      </div>
+      {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
 
-                      {isOpen && (
-                        <div className="drop-in absolute top-[calc(100%+1.35rem)] left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
-                          <div className="px-4 py-3 bg-smartlease-teal/5 border-b border-gray-100">
-                            <span className="font-bold text-smartlease-teal text-sm">Ons aanbod</span>
-                          </div>
-                          <div className="py-2">
-                            {AANBOD_SUB.map((sub) => {
-                              const Icon = sub.icon;
-                              const currentFull = location.pathname + location.search;
-                              const isSubActive = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
-                              return (
-                                <button
-                                  key={sub.to}
-                                  onClick={() => handleAanbodLink(sub.to)}
-                                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
-                                    isSubActive
-                                      ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold'
-                                      : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'
-                                  }`}
-                                >
-                                  <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
-                                  {sub.label}
-                                  {isSubActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-smartlease-teal" />}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }
+      {isOpen && (
+        <div className="drop-in absolute top-[calc(100%+1.35rem)] left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+          <div className="px-4 py-3 bg-smartlease-teal/5 border-b border-gray-100">
+            <span className="font-bold text-smartlease-teal text-sm">Ons aanbod</span>
+          </div>
+          <div className="py-2">
+            {AANBOD_SUB.map((sub) => {
+              const Icon = sub.icon;
+              const currentFull = location.pathname + location.search;
+              const isSubActive = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
+              return (
+                <button
+                  key={sub.to}
+                  onClick={() => handleAanbodLink(sub.to)}
+                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
+                    isSubActive
+                      ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
+                  {sub.label}
+                  {isSubActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-smartlease-teal" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
                 // ── Financial Lease / Meer informatie dropdowns (dynamisch) ──
                 if (item.hasDropdown && item.parentSlug) {
