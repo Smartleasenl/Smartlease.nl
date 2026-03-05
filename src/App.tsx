@@ -56,10 +56,10 @@ function App() {
       <ScrollToTop />
       <Routes>
 
-        {/* ─── Admin login ── */}
+        {/* Admin login */}
         <Route path="/admin/login" element={<LoginPage />} />
 
-        {/* ─── Admin routes ── */}
+        {/* Admin routes */}
         <Route path="/admin" element={<AuthGuard><AdminLayout /></AuthGuard>}>
           <Route index element={<AdminDashboard />} />
           <Route path="site-instellingen" element={<SiteInstellingenPage />} />
@@ -74,7 +74,7 @@ function App() {
           <Route path="dealers" element={<DealersPage />} />
         </Route>
 
-        {/* ─── Public routes ── */}
+        {/* Public routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/aanbod" element={<OccasionsPage />} />
@@ -85,12 +85,22 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
+
+          {/* Specifieke redirects VÓÓR de meer-informatie/* wildcard */}
+          <Route path="/meer-informatie/veelgestelde-vragen" element={<Navigate to="/veelgestelde-vragen" replace />} />
+          <Route path="/meer-informatie/reviews" element={<Navigate to="/reviews" replace />} />
+          <Route path="/meer-informatie/financial-lease-blog" element={<Navigate to="/blog" replace />} />
+
+          {/* Wildcard InfoPage routes */}
           <Route path="/financial-lease/*" element={<InfoPage />} />
           <Route path="/meer-informatie/*" element={<InfoPage />} />
+
+          {/* Dedicated pages */}
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/veelgestelde-vragen" element={<VeelgesteldeVragenPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
+
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
         </Route>
 
