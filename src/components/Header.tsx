@@ -6,18 +6,17 @@ import {
   Phone, MessageCircle, Star, Menu, X,
   Car, Calculator, Sparkles, FileText, Info,
   ChevronRight, ChevronDown, Check,
-  Users, Truck, Recycle, Zap, LayoutGrid, Bike,
+  Users, Truck, Recycle, Zap, LayoutGrid,
 } from 'lucide-react';
 
-// ── Aanbod subcategorieën ── exact zoals de screenshot
+// ── Aanbod subcategorieën (zonder Motoren) ──
 const AANBOD_SUB = [
-  { label: "Alle auto's",  to: '/aanbod',                         icon: LayoutGrid },
-  { label: 'Personenauto',   to: '/aanbod?bodytype=personenauto',        icon: Users      },
-  { label: 'Bedrijfsauto',   to: '/aanbod?bodytype=bedrijfsauto',        icon: Truck      },
-  { label: 'Occasions',      to: '/aanbod?type=occasion',                icon: Recycle    },
-  { label: 'Elektrisch',     to: '/aanbod?fuel=elektrisch',              icon: Zap        },
-  { label: "Marge auto's",   to: '/aanbod?type=marge',                   icon: Car        },
-  { label: 'Motoren',        to: '/aanbod?bodytype=motor',               icon: Bike       },
+  { label: "Alle auto's",  to: '/aanbod',                          icon: LayoutGrid },
+  { label: 'Personenauto',  to: '/aanbod?bodytype=personenauto',   icon: Users      },
+  { label: 'Bedrijfsauto',  to: '/aanbod?bodytype=bedrijfsauto',   icon: Truck      },
+  { label: 'Occasions',     to: '/aanbod?type=occasion',           icon: Recycle    },
+  { label: 'Elektrisch',    to: '/aanbod?fuel=elektrisch',         icon: Zap        },
+  { label: "Marge auto's",  to: '/aanbod?type=marge',              icon: Car        },
 ];
 
 const NAV_ITEMS = [
@@ -29,11 +28,6 @@ const NAV_ITEMS = [
 ];
 
 const USP_ITEMS = ['Investeer in je eigen bedrijf', 'Direct eigenaar van de auto', 'Veel fiscale voordelen'];
-
-// Helper: is een van de aanbod-links actief?
-function isAanbodActive(pathname: string, search: string) {
-  return pathname === '/aanbod';
-}
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -51,7 +45,6 @@ export function Header() {
     'meer-informatie': miPages,
   };
 
-  // Resolve links voor meer-informatie subpages die dedicated pages hebben
   const SLUG_OVERRIDES: Record<string, string> = {
     'meer-informatie/veelgestelde-vragen': '/veelgestelde-vragen',
     'meer-informatie/reviews':             '/reviews',
