@@ -22,27 +22,45 @@ function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
 }
 
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
-  const [imgError, setImgError] = useState(false);
+const [imgError, setImgError] = useState(false);
+const [checked, setChecked] = useState(false);
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return 'Prijs op aanvraag';
-    return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
-  const formatKm = (km: number) => {
-    return new Intl.NumberFormat('nl-NL').format(km) + ' km';
-  };
-
-const imageUrl = vehicle.external_id && vehicle.small_picture
+const rawUrl = vehicle.external_id && vehicle.small_picture
   ? proxyThumb(vehicle.external_id)
   : vehicle.small_picture || null;
 
-  const showPlaceholder = !imageUrl || imgError;
+useEffect(() => {
+  if (!rawUrl) { setChecked(true); return; }
+  const img = new Image();
+  img.onload = () => {
+    if (img.naturalWidth === 946 && img.naturalHeight === 473) {
+      setImgError(true);
+    }
+    setChecked(true);
+  };
+  img.onerror = () => {
+    setImgError(true);
+    setChecked(true);
+  };
+  img.src = rawUrl;
+}, [rawUrl]);
+
+const formatPrice = (price: number) => {
+  if (price === 0) return 'Prijs op aanvraag';
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(price);
+};
+
+const formatKm = (km: number) => {
+  return new Intl.NumberFormat('nl-NL').format(km) + ' km';
+};
+
+const imageUrl = rawUrl;
+const showPlaceholder = !imageUrl || imgError;
 
   return (
     <div
