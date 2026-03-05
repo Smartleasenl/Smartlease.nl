@@ -13,15 +13,19 @@ import {
   X,
   ChevronRight,
   Globe,
+  Layout,
+  PanelBottom,
 } from 'lucide-react';
 
 const SIDEBAR_ITEMS = [
-  { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { to: '/admin',                label: 'Dashboard',       icon: LayoutDashboard, exact: true },
   { to: '/admin/site-instellingen', label: 'Site Instellingen', icon: Settings },
-  { to: '/admin/leads', label: 'Leads', icon: Users },
-  { to: '/admin/dealers', label: 'Dealers', icon: Building2 },
-  { to: '/admin/paginas', label: "Pagina's", icon: FileText },
-  { to: '/admin/statistieken', label: 'Statistieken', icon: BarChart3 },
+  { to: '/admin/leads',          label: 'Leads',           icon: Users },
+  { to: '/admin/dealers',        label: 'Dealers',         icon: Building2 },
+  { to: '/admin/paginas',        label: "Pagina's (oud)",  icon: FileText },
+  { to: '/admin/pagina-beheer',  label: "Pagina beheer",   icon: Layout },
+  { to: '/admin/footer-beheer',  label: 'Footer beheer',   icon: PanelBottom },
+  { to: '/admin/statistieken',   label: 'Statistieken',    icon: BarChart3 },
 ];
 
 export default function AdminLayout() {
@@ -51,7 +55,7 @@ export default function AdminLayout() {
           <Menu className="h-6 w-6" />
         </button>
         <img src="/smart-lease-logo.gif" alt="Smartlease" className="h-7" />
-        <div className="w-10" /> {/* spacer */}
+        <div className="w-10" />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -74,10 +78,7 @@ export default function AdminLayout() {
       <div className="flex">
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">
-          <SidebarContent
-            onLogout={handleLogout}
-            isActive={isActive}
-          />
+          <SidebarContent onLogout={handleLogout} isActive={isActive} />
         </aside>
 
         {/* Main content */}
