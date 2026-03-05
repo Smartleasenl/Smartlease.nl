@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import {
   Settings, LayoutDashboard, Users, FileText, BarChart3,
   Building2, LogOut, Menu, X, ChevronRight, Globe,
-  Layout, PanelBottom, Star, HelpCircle,
+  Layout, PanelBottom, Star, HelpCircle, BookOpen,
 } from 'lucide-react';
 
 const SIDEBAR_ITEMS = [
@@ -16,6 +16,7 @@ const SIDEBAR_ITEMS = [
   { to: '/admin/footer-beheer',     label: 'Footer beheer',    icon: PanelBottom },
   { to: '/admin/reviews',           label: 'Reviews',          icon: Star },
   { to: '/admin/faq-beheer',        label: 'FAQ beheer',       icon: HelpCircle },
+  { to: '/admin/blog-beheer',       label: 'Blog beheer',      icon: BookOpen },
   { to: '/admin/statistieken',      label: 'Statistieken',     icon: BarChart3 },
   { to: '/admin/paginas',           label: "Pagina's (oud)",   icon: FileText },
 ];
