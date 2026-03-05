@@ -1,22 +1,39 @@
 // src/components/Header.tsx
 import { useSubPages } from '../hooks/usePage';
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Phone, MessageCircle, Star, Menu, X,
   Car, Calculator, Sparkles, FileText, Info,
   ChevronRight, ChevronDown, Check,
+  Users, Truck, Recycle, Zap, LayoutGrid, Bike,
 } from 'lucide-react';
 
+// ── Aanbod subcategorieën ── exact zoals de screenshot
+const AANBOD_SUB = [
+  { label: "Alle auto's",  to: '/aanbod',                         icon: LayoutGrid },
+  { label: 'Personenauto',   to: '/aanbod?bodytype=personenauto',        icon: Users      },
+  { label: 'Bedrijfsauto',   to: '/aanbod?bodytype=bedrijfsauto',        icon: Truck      },
+  { label: 'Occasions',      to: '/aanbod?type=occasion',                icon: Recycle    },
+  { label: 'Elektrisch',     to: '/aanbod?fuel=elektrisch',              icon: Zap        },
+  { label: "Marge auto's",   to: '/aanbod?type=marge',                   icon: Car        },
+  { label: 'Motoren',        to: '/aanbod?bodytype=motor',               icon: Bike       },
+];
+
 const NAV_ITEMS = [
-  { to: '/aanbod',          label: 'Aanbod',          desc: "Bekijk 60.000+ auto's",      icon: Car },
-  { to: '/calculator',      label: 'Calculator',       desc: 'Bereken je maandbedrag',     icon: Calculator },
-  { to: '/keuzehulp',       label: 'AI Keuzehulp',     desc: 'Vind je perfecte auto',      icon: Sparkles },
-  { to: '/financial-lease', label: 'Financial Lease',  desc: 'Alles over financial lease', icon: FileText,  hasDropdown: true, parentSlug: 'financial-lease' },
-  { to: '/meer-informatie', label: 'Meer informatie',  desc: 'Veelgestelde vragen',        icon: Info,      hasDropdown: true, parentSlug: 'meer-informatie' },
+  { to: '/aanbod',          label: 'Aanbod',          desc: "Bekijk 60.000+ auto's",      icon: Car,      hasDropdown: true, dropdownKey: 'aanbod'           },
+  { to: '/calculator',      label: 'Calculator',       desc: 'Bereken je maandbedrag',     icon: Calculator                                                   },
+  { to: '/keuzehulp',       label: 'AI Keuzehulp',     desc: 'Vind je perfecte auto',      icon: Sparkles                                                     },
+  { to: '/financial-lease', label: 'Financial Lease',  desc: 'Alles over financial lease', icon: FileText, hasDropdown: true, dropdownKey: 'financial-lease', parentSlug: 'financial-lease' },
+  { to: '/meer-informatie', label: 'Meer informatie',  desc: 'Veelgestelde vragen',        icon: Info,     hasDropdown: true, dropdownKey: 'meer-informatie', parentSlug: 'meer-informatie' },
 ];
 
 const USP_ITEMS = ['Investeer in je eigen bedrijf', 'Direct eigenaar van de auto', 'Veel fiscale voordelen'];
+
+// Helper: is een van de aanbod-links actief?
+function isAanbodActive(pathname: string, search: string) {
+  return pathname === '/aanbod';
+}
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,13 +41,25 @@ export function Header() {
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const dropdownRef                         = useRef<HTMLDivElement>(null);
   const location                            = useLocation();
+  const navigate                            = useNavigate();
 
   const { pages: flPages } = useSubPages('financial-lease');
   const { pages: miPages } = useSubPages('meer-informatie');
+
   const subPageMap: Record<string, typeof flPages> = {
     'financial-lease': flPages,
     'meer-informatie': miPages,
   };
+
+  // Resolve links voor meer-informatie subpages die dedicated pages hebben
+  const SLUG_OVERRIDES: Record<string, string> = {
+    'meer-informatie/veelgestelde-vragen': '/veelgestelde-vragen',
+    'meer-informatie/reviews':             '/reviews',
+    'meer-informatie/financial-lease-blog': '/blog',
+  };
+  function resolveSubSlug(slug: string) {
+    return SLUG_OVERRIDES[slug] ?? `/${slug}`;
+  }
 
   useEffect(() => {
     document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
@@ -40,7 +69,7 @@ export function Header() {
   useEffect(() => {
     setMobileMenuOpen(false);
     setOpenDropdown(null);
-  }, [location.pathname]);
+  }, [location.pathname + location.search]);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -51,6 +80,11 @@ export function Header() {
     document.addEventListener('mousedown', handle);
     return () => document.removeEventListener('mousedown', handle);
   }, []);
+
+  function handleAanbodLink(to: string) {
+    setOpenDropdown(null);
+    navigate(to);
+  }
 
   return (
     <>
@@ -75,7 +109,7 @@ export function Header() {
           </div>
           <div className="flex items-center space-x-2">
             {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
-            <Link to="/reviews" className="font-semibold text-gray-700 hover:text-smartlease-teal transition-colors cursor-pointer">4,9 reviews</Link>
+            <span className="font-semibold text-gray-700">4,9 reviews</span>
           </div>
         </div>
       </div>
@@ -98,14 +132,63 @@ export function Header() {
             {/* Desktop nav */}
             <nav ref={dropdownRef} className="hidden md:flex items-center space-x-8">
               {NAV_ITEMS.map((item) => {
-                if (item.hasDropdown) {
-                  const isActive = location.pathname.startsWith(item.to);
-                  const isOpen   = openDropdown === item.parentSlug;
-                  const subPages = subPageMap[item.parentSlug!] || [];
+                const isOpen = openDropdown === item.dropdownKey;
+
+                // ── AANBOD dropdown (statisch) ──
+                if (item.dropdownKey === 'aanbod') {
+                  const isActive = location.pathname === '/aanbod';
                   return (
                     <div key={item.to} className="relative">
                       <button
-                        onClick={() => setOpenDropdown(isOpen ? null : item.parentSlug!)}
+                        onClick={() => setOpenDropdown(isOpen ? null : 'aanbod')}
+                        className={`flex items-center gap-1 font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+                      >
+                        {item.label}
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
+                      </button>
+
+                      {isOpen && (
+                        <div className="drop-in absolute top-[calc(100%+1.35rem)] left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                          <div className="px-4 py-3 bg-smartlease-teal/5 border-b border-gray-100">
+                            <span className="font-bold text-smartlease-teal text-sm">Ons aanbod</span>
+                          </div>
+                          <div className="py-2">
+                            {AANBOD_SUB.map((sub) => {
+                              const Icon = sub.icon;
+                              const currentFull = location.pathname + location.search;
+                              const isSubActive = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
+                              return (
+                                <button
+                                  key={sub.to}
+                                  onClick={() => handleAanbodLink(sub.to)}
+                                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
+                                    isSubActive
+                                      ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold'
+                                      : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'
+                                  }`}
+                                >
+                                  <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
+                                  {sub.label}
+                                  {isSubActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-smartlease-teal" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                // ── Financial Lease / Meer informatie dropdowns (dynamisch) ──
+                if (item.hasDropdown && item.parentSlug) {
+                  const isActive = location.pathname.startsWith(item.to);
+                  const subPages = subPageMap[item.parentSlug] || [];
+                  return (
+                    <div key={item.to} className="relative">
+                      <button
+                        onClick={() => setOpenDropdown(isOpen ? null : item.dropdownKey!)}
                         className={`flex items-center gap-1 font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
                       >
                         {item.label}
@@ -121,9 +204,10 @@ export function Header() {
                           </div>
                           <div className="py-2">
                             {subPages.map((p) => {
-                              const isSub = location.pathname === `/${p.slug}`;
+                              const resolvedTo = resolveSubSlug(p.slug);
+                              const isSub = (location.pathname + location.search) === resolvedTo || location.pathname === resolvedTo;
                               return (
-                                <Link key={p.slug} to={`/${p.slug}`} onClick={() => setOpenDropdown(null)}
+                                <Link key={p.slug} to={resolvedTo} onClick={() => setOpenDropdown(null)}
                                   className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${isSub ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold' : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'}`}
                                 >
                                   {p.menu_label}
@@ -137,6 +221,8 @@ export function Header() {
                     </div>
                   );
                 }
+
+                // ── Gewone link ──
                 const isActive = location.pathname === item.to;
                 return (
                   <Link key={item.to} to={item.to} className={`relative font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}>
@@ -177,17 +263,58 @@ export function Header() {
           <nav className="px-4 pt-6 pb-4">
             {NAV_ITEMS.map((item, idx) => {
               const Icon       = item.icon;
-              const isActive   = item.hasDropdown ? location.pathname.startsWith(item.to) : location.pathname === item.to;
               const isExpanded = mobileExpanded === item.to;
-              const subPages   = item.parentSlug ? (subPageMap[item.parentSlug] || []) : [];
 
-              if (item.hasDropdown) {
+              // ── Mobile Aanbod ──
+              if (item.dropdownKey === 'aanbod') {
+                const isActive = location.pathname === '/aanbod';
                 return (
                   <div key={item.to}>
                     <button
                       onClick={() => setMobileExpanded(isExpanded ? null : item.to)}
                       className={`w-full group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-1 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50'}`}
-                      style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx*.06}s,transform .3s ease ${idx*.06}s` }}
+                      style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
+                    >
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}><Icon className="h-5 w-5" /></div>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className={`font-bold text-base ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>{item.label}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 flex-shrink-0 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isExpanded && (
+                      <div className="ml-[3.75rem] mb-2 flex flex-col gap-0.5">
+                        {AANBOD_SUB.map((sub) => {
+                          const SubIcon = sub.icon;
+                          const currentFull = location.pathname + location.search;
+                          const isSub = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
+                          return (
+                            <button
+                              key={sub.to}
+                              onClick={() => { setMobileMenuOpen(false); navigate(sub.to); }}
+                              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-colors text-left ${isSub ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-smartlease-teal'}`}
+                            >
+                              <SubIcon className="h-4 w-4 opacity-60 flex-shrink-0" />
+                              {sub.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              // ── Mobile Financial Lease / Meer informatie ──
+              if (item.hasDropdown && item.parentSlug) {
+                const isActive = location.pathname.startsWith(item.to);
+                const subPages = subPageMap[item.parentSlug] || [];
+                return (
+                  <div key={item.to}>
+                    <button
+                      onClick={() => setMobileExpanded(isExpanded ? null : item.to)}
+                      className={`w-full group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-1 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50'}`}
+                      style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
                     >
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}><Icon className="h-5 w-5" /></div>
                       <div className="flex-1 text-left min-w-0">
@@ -202,9 +329,10 @@ export function Header() {
                           Overzichtspagina →
                         </Link>
                         {subPages.map((p) => {
-                          const isSub = location.pathname === `/${p.slug}`;
+                          const resolvedTo = resolveSubSlug(p.slug);
+                          const isSub = location.pathname === resolvedTo;
                           return (
-                            <Link key={p.slug} to={`/${p.slug}`} onClick={() => setMobileMenuOpen(false)}
+                            <Link key={p.slug} to={resolvedTo} onClick={() => setMobileMenuOpen(false)}
                               className={`px-4 py-2.5 rounded-xl text-sm transition-colors ${isSub ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold' : 'text-gray-600 hover:bg-gray-50 hover:text-smartlease-teal'}`}>
                               {p.menu_label}
                             </Link>
@@ -216,10 +344,12 @@ export function Header() {
                 );
               }
 
+              // ── Mobile gewone link ──
+              const isActive = location.pathname === item.to;
               return (
                 <Link key={item.to} to={item.to} onClick={() => setMobileMenuOpen(false)}
                   className={`group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-2 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50 active:bg-gray-100'}`}
-                  style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx*.06}s,transform .3s ease ${idx*.06}s` }}
+                  style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
                 >
                   <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-smartlease-teal/10 group-hover:text-smartlease-teal'}`}><Icon className="h-5 w-5" /></div>
                   <div className="flex-1 min-w-0">
