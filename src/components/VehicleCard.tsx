@@ -11,13 +11,12 @@ interface VehicleCardProps {
 function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 select-none">
-      <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
-        <Car className="h-8 w-8 text-smartlease-teal opacity-60" />
-      </div>
-      <p className="text-xs font-semibold text-gray-400 text-center px-4 truncate max-w-full">
-        {merk} {model}
-      </p>
-      <p className="text-[10px] text-gray-300 mt-0.5">Geen foto beschikbaar</p>
+      <img
+        src="/smart-lease-logo.gif"
+        alt="Smartlease.nl"
+        className="h-12 w-auto opacity-40 mb-3"
+      />
+      <p className="text-xs text-gray-400 font-medium">{merk} {model}</p>
     </div>
   );
 }
