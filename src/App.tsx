@@ -13,6 +13,7 @@ import { BelMijPage } from './pages/BelMijPage';
 import InfoPage from './pages/InfoPage';
 import ReviewsPage from './pages/ReviewsPage';
 import VeelgesteldeVragenPage from './pages/VeelgesteldeVragenPage';
+import BlogPage from './pages/BlogPage';
 
 // Admin imports
 import LoginPage from './pages/admin/LoginPage';
@@ -27,6 +28,7 @@ import PaginaBeheer from './pages/admin/PaginaBeheer';
 import FooterBeheer from './pages/admin/FooterBeheer';
 import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
+import BlogBeheer from './pages/admin/BlogBeheer';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -66,6 +68,7 @@ function App() {
           <Route path="footer-beheer" element={<FooterBeheer />} />
           <Route path="reviews" element={<ReviewsBeheer />} />
           <Route path="faq-beheer" element={<FaqBeheer />} />
+          <Route path="blog-beheer" element={<BlogBeheer />} />
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
         </Route>
@@ -85,6 +88,7 @@ function App() {
           <Route path="/meer-informatie/*" element={<InfoPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/veelgestelde-vragen" element={<VeelgesteldeVragenPage />} />
+          <Route path="/blog" element={<BlogPage />} />
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
         </Route>
 
