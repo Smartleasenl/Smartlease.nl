@@ -14,6 +14,7 @@ import InfoPage from './pages/InfoPage';
 import ReviewsPage from './pages/ReviewsPage';
 import VeelgesteldeVragenPage from './pages/VeelgesteldeVragenPage';
 import BlogPage from './pages/BlogPage';
+import BlogDetailPage from './pages/BlogDetailPage';
 
 // Admin imports
 import LoginPage from './pages/admin/LoginPage';
@@ -89,6 +90,7 @@ function App() {
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/veelgestelde-vragen" element={<VeelgesteldeVragenPage />} />
           <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:slug" element={<BlogDetailPage />} />
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
         </Route>
 
