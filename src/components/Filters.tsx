@@ -202,7 +202,14 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
       const max = filters.budget_max;
       chips.push({ key: 'budget', label: max ? `€${min}-€${max} p/m` : `€${min}+ p/m` });
     }
-    if (filters.categorie) chips.push({ key: 'categorie', label: filters.categorie as string });
+    if (filters.categorie) {
+      const cat = filters.categorie as string;
+      const label =
+        cat === '__PERSONENAUTO__' ? 'Personenauto' :
+        cat === '__MOTOR__' ? 'Motoren' :
+        cat;
+      chips.push({ key: 'categorie', label });
+    }
     if (filters.brandstof) chips.push({ key: 'brandstof', label: filters.brandstof as string });
     if (filters.transmissie) chips.push({ key: 'transmissie', label: filters.transmissie as string });
     if (filters.kleur) chips.push({ key: 'kleur', label: filters.kleur as string });
