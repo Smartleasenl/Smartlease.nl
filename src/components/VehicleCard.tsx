@@ -8,6 +8,18 @@ interface VehicleCardProps {
   onClick: () => void;
 }
 
+// Bereken maandprijs met standaard instellingen (72 mnd, 15% aanbetaling, 15% slottermijn, 8.99% rente)
+function berekenMaandprijs(verkoopprijs: number): number {
+  if (!verkoopprijs || verkoopprijs <= 0) return 0;
+  const r = 8.99 / 100 / 12;
+  const aanbetaling = verkoopprijs * 0.15;
+  const slottermijn = verkoopprijs * 0.15;
+  const loan = verkoopprijs - aanbetaling;
+  const n = 72;
+  const pmt = (loan * r * Math.pow(1 + r, n) - slottermijn * r) / (Math.pow(1 + r, n) - 1);
+  return Math.round(pmt);
+}
+
 function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 select-none">
@@ -48,10 +60,8 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
   const formatPrice = (price: number) => {
     if (price === 0) return 'Prijs op aanvraag';
     return new Intl.NumberFormat('nl-NL', {
-      style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      style: 'currency', currency: 'EUR',
+      minimumFractionDigits: 0, maximumFractionDigits: 0,
     }).format(price);
   };
 
@@ -61,6 +71,9 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
   const imageUrl = rawUrl;
   const showPlaceholder = !imageUrl || imgError;
+
+  // Altijd eigen berekening gebruiken
+  const maandprijs = berekenMaandprijs(vehicle.verkoopprijs);
 
   return (
     <div
@@ -81,16 +94,12 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
               onError={() => setImgError(true)}
               onLoad={(e) => {
                 const img = e.currentTarget;
-                if (
-                  img.naturalWidth === 0 ||
-                  img.naturalWidth < 10 ||
-                  (img.naturalWidth === 946 && img.naturalHeight === 473)
-                ) {
+                if (img.naturalWidth === 0 || img.naturalWidth < 10 ||
+                  (img.naturalWidth === 946 && img.naturalHeight === 473)) {
                   setImgError(true);
                 }
               }}
             />
-            {/* Gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </>
         )}
@@ -122,11 +131,11 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
         {/* Price */}
         <div className="mb-4">
-          {vehicle.maandprijs > 0 ? (
+          {maandprijs > 0 ? (
             <>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                  € {vehicle.maandprijs},-
+                  € {maandprijs.toLocaleString('nl-NL')},-
                 </span>
                 <span className="text-sm text-gray-400 font-medium">p/m</span>
               </div>
