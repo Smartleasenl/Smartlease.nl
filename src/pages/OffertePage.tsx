@@ -24,6 +24,8 @@ interface CalculatorData {
   aanbetaling: number;
   maandbedrag: number;
   slottermijn: number;
+  financieringsbedrag?: number;
+  aankoopprijs?: number;
 }
 
 interface OfferteForm {
@@ -44,7 +46,6 @@ export function OffertePage() {
 
   const vehicle: VehicleData | null = location.state?.vehicle || null;
   const calculator: CalculatorData | null = location.state?.calculator || null;
-  // Cached image URL passed from VehicleDetailPage via navigate state
   const passedImageUrl: string | null = location.state?.cachedImageUrl || null;
 
   const [form, setForm] = useState<OfferteForm>({
@@ -61,11 +62,9 @@ export function OffertePage() {
     if (!vehicle) { navigate('/aanbod', { replace: true }); }
   }, [vehicle, navigate]);
 
-  // If no cached URL passed, try to fetch from Supabase Storage
   useEffect(() => {
     if (passedImageUrl || !vehicle) return;
     setImageLoading(true);
-
     fetch(`${SUPABASE_URL}/functions/v1/cache-vehicle-image?vehicle_id=${vehicle.id}`)
       .then(r => r.json())
       .then(data => {
@@ -82,6 +81,11 @@ export function OffertePage() {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(price);
 
+  // Bereken financieringsbedrag als het niet in calculator zit
+  const financieringsbedrag = calculator?.financieringsbedrag
+    ?? (calculator && vehicle.verkoopprijs ? vehicle.verkoopprijs - calculator.aanbetaling : null);
+  const aankoopprijs = calculator?.aankoopprijs ?? vehicle.verkoopprijs ?? null;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -91,7 +95,6 @@ export function OffertePage() {
     if (!form.email.trim()) { setError('Vul je e-mailadres in.'); setLoading(false); return; }
     if (!form.telefoon.trim()) { setError('Vul je telefoonnummer in.'); setLoading(false); return; }
     if (!form.bedrijfsnaam.trim()) { setError('Vul je bedrijfsnaam in.'); setLoading(false); return; }
-    if (!form.kvk_nummer.trim()) { setError('Vul je KvK-nummer in.'); setLoading(false); return; }
 
     const result = await submitLead({
       type: 'offerte',
@@ -101,18 +104,24 @@ export function OffertePage() {
       email: form.email,
       telefoon: form.telefoon,
       bedrijfsnaam: form.bedrijfsnaam,
-      kvk_nummer: form.kvk_nummer,
+      kvk_nummer: form.kvk_nummer || undefined,
       bericht: form.bericht || `Offerte aanvraag voor: ${vehicleTitle}`,
       vehicle_id: vehicle.id,
       vehicle_info: vehicleTitle,
-      calculator_data: calculator ? { looptijd: calculator.looptijd, aanbetaling: calculator.aanbetaling, maandbedrag: calculator.maandbedrag, slottermijn: calculator.slottermijn } : undefined,
+      calculator_data: calculator ? {
+        looptijd: calculator.looptijd,
+        aanbetaling: calculator.aanbetaling,
+        maandbedrag: calculator.maandbedrag,
+        slottermijn: calculator.slottermijn,
+        financieringsbedrag: financieringsbedrag ?? undefined,
+        aankoopprijs: aankoopprijs ?? undefined,
+      } : undefined,
     });
 
     if (result.success) {
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Send emails (fire-and-forget)
       fetch(`${SUPABASE_URL}/functions/v1/send-offerte-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,7 +141,6 @@ export function OffertePage() {
     setLoading(false);
   };
 
-  // ── Image component ──
   const VehicleImage = ({ className, iconSize = 'h-8 w-8' }: { className: string; iconSize?: string }) => {
     const [imgError, setImgError] = useState(false);
     if (imageLoading) return <div className={`${className} bg-gray-100 flex items-center justify-center`}><Loader2 className="h-6 w-6 text-gray-300 animate-spin" /></div>;
@@ -173,18 +181,20 @@ export function OffertePage() {
             {calculator && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Lease berekening</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { label: 'Looptijd', value: `${calculator.looptijd} mnd` },
-                    { label: 'Aanbetaling', value: formatPrice(calculator.aanbetaling) },
-                    { label: 'Maandbedrag', value: formatPrice(calculator.maandbedrag), hl: true },
-                    { label: 'Slottermijn', value: formatPrice(calculator.slottermijn) },
-                  ].map(i => (
-                    <div key={i.label} className="bg-white rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400">{i.label}</p>
-                      <p className={`font-bold ${i.hl ? 'text-smartlease-teal' : 'text-gray-900'}`}>{i.value}</p>
-                    </div>
-                  ))}
+                <div className="space-y-2">
+                  {aankoopprijs && (
+                    <div className="flex justify-between text-sm"><span className="text-gray-500">Aankoopprijs</span><span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span></div>
+                  )}
+                  {financieringsbedrag && (
+                    <div className="flex justify-between text-sm"><span className="text-gray-500">Financieringsbedrag</span><span className="font-semibold text-gray-900">{formatPrice(financieringsbedrag)}</span></div>
+                  )}
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Looptijd</span><span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Aanbetaling</span><span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span></div>
+                  <div className="flex justify-between text-sm"><span className="text-gray-500">Slottermijn</span><span className="font-semibold text-gray-900">{formatPrice(calculator.slottermijn)}</span></div>
+                  <div className="border-t border-gray-200 pt-2 flex justify-between">
+                    <span className="text-gray-900 font-semibold">Maandbedrag</span>
+                    <span className="text-lg font-bold text-smartlease-teal">{formatPrice(calculator.maandbedrag)}/mnd</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -196,7 +206,7 @@ export function OffertePage() {
                 <div><span className="text-gray-400">E-mail:</span> <span className="text-gray-900 font-medium">{form.email}</span></div>
                 <div><span className="text-gray-400">Telefoon:</span> <span className="text-gray-900 font-medium">{form.telefoon}</span></div>
                 <div><span className="text-gray-400">Bedrijf:</span> <span className="text-gray-900 font-medium">{form.bedrijfsnaam}</span></div>
-                <div><span className="text-gray-400">KvK:</span> <span className="text-gray-900 font-medium">{form.kvk_nummer}</span></div>
+                {form.kvk_nummer && <div><span className="text-gray-400">KvK:</span> <span className="text-gray-900 font-medium">{form.kvk_nummer}</span></div>}
               </div>
               {form.bericht && <div className="mt-3 pt-3 border-t border-gray-200"><span className="text-gray-400 text-sm">Opmerking:</span><p className="text-gray-900 text-sm mt-1">{form.bericht}</p></div>}
             </div>
@@ -207,8 +217,12 @@ export function OffertePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`} className="flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition"><ArrowLeft className="h-4 w-4" /> Terug naar auto</Link>
-              <Link to="/aanbod" className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">Bekijk meer auto's</Link>
+              <Link to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`} className="flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition">
+                <ArrowLeft className="h-4 w-4" /> Terug naar auto
+              </Link>
+              <Link to="/aanbod" className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">
+                Bekijk meer auto's
+              </Link>
             </div>
           </div>
         </div>
@@ -230,34 +244,74 @@ export function OffertePage() {
       <p className="text-gray-500 mb-8">Vul je gegevens in en ontvang binnen 1 werkdag een offerte op maat.</p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Formulier */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700"><AlertCircle className="h-4 w-4 flex-shrink-0" /> {error}</div>}
+            {error && (
+              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" /> {error}
+              </div>
+            )}
 
+            {/* Persoonlijke gegevens */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
-              <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-4"><User className="h-5 w-5 text-smartlease-teal" /> Persoonlijke gegevens</h2>
+              <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-4">
+                <User className="h-5 w-5 text-smartlease-teal" /> Persoonlijke gegevens
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Voornaam <span className="text-red-500">*</span></label><input type="text" required value={form.voornaam} onChange={e => setForm({...form, voornaam: e.target.value})} placeholder="Jan" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Achternaam <span className="text-red-500">*</span></label><input type="text" required value={form.achternaam} onChange={e => setForm({...form, achternaam: e.target.value})} placeholder="de Vries" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">E-mailadres <span className="text-red-500">*</span></label><input type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="jan@bedrijf.nl" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Telefoonnummer <span className="text-red-500">*</span></label><input type="tel" required value={form.telefoon} onChange={e => setForm({...form, telefoon: e.target.value})} placeholder="06 - 12345678" className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Voornaam <span className="text-red-500">*</span></label>
+                  <input type="text" required value={form.voornaam} onChange={e => setForm({...form, voornaam: e.target.value})} placeholder="Jan"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Achternaam <span className="text-red-500">*</span></label>
+                  <input type="text" required value={form.achternaam} onChange={e => setForm({...form, achternaam: e.target.value})} placeholder="de Vries"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mailadres <span className="text-red-500">*</span></label>
+                  <input type="email" required value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="jan@bedrijf.nl"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefoonnummer <span className="text-red-500">*</span></label>
+                  <input type="tel" required value={form.telefoon} onChange={e => setForm({...form, telefoon: e.target.value})} placeholder="06 - 12345678"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
               </div>
             </div>
 
+            {/* Bedrijfsgegevens */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
-              <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-4"><Building2 className="h-5 w-5 text-smartlease-teal" /> Bedrijfsgegevens</h2>
+              <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-1">
+                <Building2 className="h-5 w-5 text-smartlease-teal" /> Bedrijfsgegevens
+              </h2>
+              <p className="text-xs text-gray-400 mb-4">Smartlease bedient uitsluitend zakelijke klanten.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1.5">Bedrijfsnaam <span className="text-red-500">*</span></label><input type="text" required value={form.bedrijfsnaam} onChange={e => setForm({...form, bedrijfsnaam: e.target.value})} placeholder="Bedrijf B.V." className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
-<div><label className="block text-sm font-medium text-gray-700 mb-1.5">KvK-nummer <span className="text-gray-400 font-normal">(optioneel)</span></label><input type="text" value={form.kvk_nummer} onChange={e => setForm({...form, kvk_nummer: e.target.value})} placeholder="12345678" maxLength={8} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Bedrijfsnaam <span className="text-red-500">*</span></label>
+                  <input type="text" required value={form.bedrijfsnaam} onChange={e => setForm({...form, bedrijfsnaam: e.target.value})} placeholder="Bedrijf B.V."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">KvK-nummer <span className="text-gray-400 font-normal">(optioneel)</span></label>
+                  <input type="text" value={form.kvk_nummer} onChange={e => setForm({...form, kvk_nummer: e.target.value})} placeholder="12345678" maxLength={8}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
+                </div>
               </div>
             </div>
 
+            {/* Opmerking */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Opmerking <span className="text-gray-400 font-normal">(optioneel)</span></label>
-              <textarea value={form.bericht} onChange={e => setForm({...form, bericht: e.target.value})} placeholder="Heb je nog specifieke wensen of vragen?" rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition resize-y" />
+              <textarea value={form.bericht} onChange={e => setForm({...form, bericht: e.target.value})}
+                placeholder="Heb je nog specifieke wensen of vragen?" rows={3}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition resize-y" />
             </div>
 
-            <button type="submit" disabled={loading} className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-smartlease-teal text-white rounded-xl font-bold text-lg hover:bg-smartlease-teal/90 active:scale-[0.98] disabled:opacity-60 transition-all shadow-lg shadow-smartlease-teal/20">
+            <button type="submit" disabled={loading}
+              className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-smartlease-teal text-white rounded-xl font-bold text-lg hover:bg-smartlease-teal/90 active:scale-[0.98] disabled:opacity-60 transition-all shadow-lg shadow-smartlease-teal/20">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               {loading ? 'Bezig met verzenden...' : 'Offerte aanvragen'}
             </button>
@@ -265,8 +319,10 @@ export function OffertePage() {
           </form>
         </div>
 
+        {/* Sidebar */}
         <div className="lg:col-span-1">
           <div className="space-y-4 sticky top-28">
+            {/* Auto card */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <VehicleImage className="w-full h-44 object-cover" iconSize="h-12 w-12" />
               <div className="p-4">
@@ -281,18 +337,46 @@ export function OffertePage() {
               </div>
             </div>
 
+            {/* Berekening */}
             {calculator && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-3"><Calculator className="h-4 w-4 text-smartlease-teal" /> Jouw berekening</h3>
+                <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-3">
+                  <Calculator className="h-4 w-4 text-smartlease-teal" /> Jouw berekening
+                </h3>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Looptijd</span><span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Aanbetaling</span><span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Slottermijn</span><span className="font-semibold text-gray-900">{formatPrice(calculator.slottermijn)}</span></div>
-                  <div className="border-t border-gray-100 pt-2 flex justify-between"><span className="text-gray-900 font-semibold">Maandbedrag</span><span className="text-lg font-bold text-smartlease-teal">{formatPrice(calculator.maandbedrag)}/mnd</span></div>
+                  {aankoopprijs && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Aankoopprijs</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span>
+                    </div>
+                  )}
+                  {financieringsbedrag && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Financieringsbedrag</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(financieringsbedrag)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Looptijd</span>
+                    <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Aanbetaling</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Slottermijn</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.slottermijn)}</span>
+                  </div>
+                  <div className="border-t border-gray-100 pt-2 flex justify-between">
+                    <span className="text-gray-900 font-semibold">Maandbedrag</span>
+                    <span className="text-lg font-bold text-smartlease-teal">{formatPrice(calculator.maandbedrag)}/mnd</span>
+                  </div>
                 </div>
               </div>
             )}
 
+            {/* Contact */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
               <h3 className="font-bold text-gray-900 text-sm">Vragen?</h3>
               <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition"><Phone className="h-4 w-4" /> 085 - 80 08 600</a>
