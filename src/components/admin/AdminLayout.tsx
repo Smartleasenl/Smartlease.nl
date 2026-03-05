@@ -15,17 +15,19 @@ import {
   Globe,
   Layout,
   PanelBottom,
+  Star,
 } from 'lucide-react';
 
 const SIDEBAR_ITEMS = [
-  { to: '/admin',                label: 'Dashboard',       icon: LayoutDashboard, exact: true },
-  { to: '/admin/site-instellingen', label: 'Site Instellingen', icon: Settings },
-  { to: '/admin/leads',          label: 'Leads',           icon: Users },
-  { to: '/admin/dealers',        label: 'Dealers',         icon: Building2 },
-  { to: '/admin/paginas',        label: "Pagina's (oud)",  icon: FileText },
-  { to: '/admin/pagina-beheer',  label: "Pagina beheer",   icon: Layout },
-  { to: '/admin/footer-beheer',  label: 'Footer beheer',   icon: PanelBottom },
-  { to: '/admin/statistieken',   label: 'Statistieken',    icon: BarChart3 },
+  { to: '/admin',                   label: 'Dashboard',        icon: LayoutDashboard, exact: true },
+  { to: '/admin/site-instellingen', label: 'Site Instellingen',icon: Settings },
+  { to: '/admin/leads',             label: 'Leads',            icon: Users },
+  { to: '/admin/dealers',           label: 'Dealers',          icon: Building2 },
+  { to: '/admin/pagina-beheer',     label: 'Pagina beheer',    icon: Layout },
+  { to: '/admin/footer-beheer',     label: 'Footer beheer',    icon: PanelBottom },
+  { to: '/admin/reviews',           label: 'Reviews',          icon: Star },
+  { to: '/admin/statistieken',      label: 'Statistieken',     icon: BarChart3 },
+  { to: '/admin/paginas',           label: "Pagina's (oud)",   icon: FileText },
 ];
 
 export default function AdminLayout() {
