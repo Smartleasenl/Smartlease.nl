@@ -1,4 +1,5 @@
-import { Gauge, Fuel, Zap, Settings2 } from 'lucide-react';
+import { useState } from 'react';
+import { Gauge, Fuel, Zap, Settings2, Car } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { proxyThumb } from '../utils/imageProxy';
 
@@ -7,7 +8,23 @@ interface VehicleCardProps {
   onClick: () => void;
 }
 
+function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 select-none">
+      <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mb-3">
+        <Car className="h-8 w-8 text-smartlease-teal opacity-60" />
+      </div>
+      <p className="text-xs font-semibold text-gray-400 text-center px-4 truncate max-w-full">
+        {merk} {model}
+      </p>
+      <p className="text-[10px] text-gray-300 mt-0.5">Geen foto beschikbaar</p>
+    </div>
+  );
+}
+
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   const formatPrice = (price: number) => {
     if (price === 0) return 'Prijs op aanvraag';
     return new Intl.NumberFormat('nl-NL', {
@@ -24,8 +41,9 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
   const imageUrl = vehicle.external_id
     ? proxyThumb(vehicle.external_id)
-    : vehicle.small_picture ||
-      'https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=800';
+    : vehicle.small_picture || null;
+
+  const showPlaceholder = !imageUrl || imgError;
 
   return (
     <div
@@ -34,14 +52,21 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
     >
       {/* Image */}
       <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '16/10' }}>
-        <img
-          src={imageUrl}
-          alt={`${vehicle.merk} ${vehicle.model}`}
-          className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-          loading="lazy"
-        />
-        {/* Gradient overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {showPlaceholder ? (
+          <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
+        ) : (
+          <>
+            <img
+              src={imageUrl!}
+              alt={`${vehicle.merk} ${vehicle.model}`}
+              className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+              loading="lazy"
+              onError={() => setImgError(true)}
+            />
+            {/* Gradient overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          </>
+        )}
 
         {/* Year badge */}
         {vehicle.bouwjaar_year && (
