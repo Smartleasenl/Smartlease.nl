@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Gauge, Fuel, Zap, Settings2, Car } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { proxyThumb } from '../utils/imageProxy';
