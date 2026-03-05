@@ -11,6 +11,7 @@ import { ContactPage } from './pages/ContactPage';
 import { OffertePage } from './pages/OffertePage';
 import { BelMijPage } from './pages/BelMijPage';
 import InfoPage from './pages/InfoPage';
+import ReviewsPage from './pages/ReviewsPage';
 
 // Admin imports
 import LoginPage from './pages/admin/LoginPage';
@@ -23,6 +24,7 @@ import { PaginasPage, StatistiekenPage } from './pages/admin/PlaceholderPages';
 import DealersPage from './pages/admin/DealersPage';
 import PaginaBeheer from './pages/admin/PaginaBeheer';
 import FooterBeheer from './pages/admin/FooterBeheer';
+import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -48,6 +50,7 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
+
         {/* ─── Admin login (geen layout) ── */}
         <Route path="/admin/login" element={<LoginPage />} />
 
@@ -66,6 +69,7 @@ function App() {
           <Route path="paginas" element={<PaginasPage />} />
           <Route path="pagina-beheer" element={<PaginaBeheer />} />
           <Route path="footer-beheer" element={<FooterBeheer />} />
+          <Route path="reviews" element={<ReviewsBeheer />} />
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
         </Route>
@@ -83,8 +87,10 @@ function App() {
           <Route path="/bel-mij" element={<BelMijPage />} />
           <Route path="/financial-lease/*" element={<InfoPage />} />
           <Route path="/meer-informatie/*" element={<InfoPage />} />
+          <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
         </Route>
+
       </Routes>
     </BrowserRouter>
   );
