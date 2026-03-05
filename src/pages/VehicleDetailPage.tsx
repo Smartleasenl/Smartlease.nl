@@ -27,6 +27,19 @@ import { proxyLargeImage, proxyThumb } from '../utils/imageProxy';
 import { supabase } from '../lib/supabase';
 
 
+
+// Bereken maandprijs met standaard instellingen (72 mnd, 15% aanbetaling, 15% slottermijn, 8.99% rente)
+function berekenMaandprijs(verkoopprijs: number): number {
+  if (!verkoopprijs || verkoopprijs <= 0) return 0;
+  const r = 8.99 / 100 / 12;
+  const aanbetaling = verkoopprijs * 0.15;
+  const slottermijn = verkoopprijs * 0.15;
+  const loan = verkoopprijs - aanbetaling;
+  const n = 72;
+  const pmt = (loan * r * Math.pow(1 + r, n) - slottermijn * r) / (Math.pow(1 + r, n) - 1);
+  return Math.round(pmt);
+}
+
 // ─── Accordion Section ───────────────────────────────────────────────────────
 
 function AccordionSection({
@@ -449,11 +462,11 @@ export function VehicleDetailPage() {
                   <p className="text-gray-500 mt-1 text-sm md:text-base">{vehicle.uitvoering}</p>
                 </div>
                 <div className="flex flex-col items-start md:items-end">
-                  {vehicle.maandprijs > 0 ? (
+                  {vehicle.verkoopprijs > 0 ? (
                     <>
                       <div className="flex items-baseline gap-2">
                         <span className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                          € {vehicle.maandprijs.toLocaleString('nl-NL')},-
+                          € {calculatorState ? calculatorState.maandbedrag.toLocaleString('nl-NL') : berekenMaandprijs(vehicle.verkoopprijs).toLocaleString('nl-NL')},-
                         </span>
                         <span className="text-sm text-gray-400 font-medium">p/m</span>
                       </div>
@@ -624,11 +637,11 @@ export function VehicleDetailPage() {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-gray-200/60 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] z-50">
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <div>
-            {vehicle.maandprijs > 0 ? (
+            {vehicle.verkoopprijs > 0 ? (
               <>
                 <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">Maandbedrag</p>
                 <p className="text-xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent">
-                  € {vehicle.maandprijs.toLocaleString('nl-NL')} p/m
+                  € {(calculatorState ? calculatorState.maandbedrag : berekenMaandprijs(vehicle.verkoopprijs)).toLocaleString('nl-NL')} p/m
                 </p>
               </>
             ) : (
