@@ -19,7 +19,8 @@ const leaseTypes = [
   {
     title: 'Financial Lease',
     description: 'Direct eigenaar, maximaal fiscaal voordeel',
-    image: 'https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80',
+    // Zakelijke man stapt in moderne auto, typisch Nederlands kantoorpand op achtergrond
+    image: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=800&q=80',
     link: '/financial-lease/wat-is-financial-lease',
     btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
@@ -27,7 +28,8 @@ const leaseTypes = [
   {
     title: 'Operational Lease',
     description: 'All-in maandprijs, volledig ontzorgd',
-    image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80',
+    // Moderne snelweg Nederland, zakelijk rijden
+    image: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80',
     link: '/financial-lease/operational-lease',
     btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
@@ -35,7 +37,8 @@ const leaseTypes = [
   {
     title: 'Equipment Lease',
     description: 'Machines & bedrijfsmiddelen financieren',
-    image: 'https://images.unsplash.com/photo-1504222490345-c075b6008014?auto=format&fit=crop&w=800&q=80',
+    // Modern magazijn / bedrijfshal, zakelijk Nederland
+    image: 'https://images.unsplash.com/photo-1553413077-190dd305871c?auto=format&fit=crop&w=800&q=80',
     link: '/financial-lease/equipment-lease',
     btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
