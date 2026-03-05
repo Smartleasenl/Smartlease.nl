@@ -19,6 +19,7 @@ import SiteInstellingenPage from './pages/admin/SiteInstellingenPage';
 import LeadsPage from './pages/admin/LeadsPage';
 import { PaginasPage, StatistiekenPage } from './pages/admin/PlaceholderPages';
 import DealersPage from './pages/admin/DealersPage';
+import PaginaBeheer from './pages/admin/PaginaBeheer'; // ← toegevoegd
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -29,7 +30,6 @@ function PlaceholderPage({ title }: { title: string }) {
   );
 }
 
-// Public layout wrapper met Header + Footer
 function PublicLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -96,6 +96,7 @@ function App() {
           <Route path="site-instellingen" element={<SiteInstellingenPage />} />
           <Route path="leads" element={<LeadsPage />} />
           <Route path="paginas" element={<PaginasPage />} />
+          <Route path="pagina-beheer" element={<PaginaBeheer />} /> {/* ← correct: in AdminLayout */}
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
         </Route>
@@ -112,10 +113,8 @@ function App() {
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
           <Route path="/financial-lease/*" element={<InfoPage />} />
-          <Route path="/meer-informatie" element={<PlaceholderPage title="Meer Informatie" />} />
+          <Route path="/meer-informatie/*" element={<InfoPage />} /> {/* ← PlaceholderPage verwijderd, wildcard werkt nu */}
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
-          <Route path="/meer-informatie/*" element={<InfoPage />} />
-          <Route path="/admin/paginas" element={<PaginaBeheer />} />
         </Route>
       </Routes>
     </BrowserRouter>
