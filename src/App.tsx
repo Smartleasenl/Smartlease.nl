@@ -21,6 +21,7 @@ import LeadsPage from './pages/admin/LeadsPage';
 import { PaginasPage, StatistiekenPage } from './pages/admin/PlaceholderPages';
 import DealersPage from './pages/admin/DealersPage';
 import PaginaBeheer from './pages/admin/PaginaBeheer';
+import FooterBeheer from './pages/admin/FooterBeheer';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -48,7 +49,7 @@ function App() {
         {/* ─── Admin login (geen layout) ── */}
         <Route path="/admin/login" element={<LoginPage />} />
 
-        {/* ─── Admin routes (met AdminLayout + AuthGuard) ── */}
+        {/* ─── Admin routes ── */}
         <Route
           path="/admin"
           element={
@@ -62,11 +63,12 @@ function App() {
           <Route path="leads" element={<LeadsPage />} />
           <Route path="paginas" element={<PaginasPage />} />
           <Route path="pagina-beheer" element={<PaginaBeheer />} />
+          <Route path="footer-beheer" element={<FooterBeheer />} />
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
         </Route>
 
-        {/* ─── Public routes (met Header + Footer) ── */}
+        {/* ─── Public routes ── */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/aanbod" element={<OccasionsPage />} />
