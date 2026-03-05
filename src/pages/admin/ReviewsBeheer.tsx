@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import {
   Star, Trash2, Eye, EyeOff, Save, Plus,
   Sparkles, CheckCircle, AlertCircle, Loader2,
-  ClipboardPaste, X, ChevronDown, ChevronUp, GripVertical
+  X, ChevronDown, ChevronUp, GripVertical, PenLine
 } from 'lucide-react';
 
 interface Review {
@@ -20,35 +20,34 @@ interface Review {
 
 const EMPTY_REVIEW = {
   naam: '', bedrijf: '', sterren: 5, tekst: '',
-  datum: new Date().toISOString().split('T')[0], is_published: true, sort_order: 0
+  datum: new Date().toISOString().split('T')[0],
+  is_published: true, sort_order: 0
 };
 
 export default function ReviewsBeheer() {
-  const [reviews, setReviews]         = useState<Review[]>([]);
-  const [loading, setLoading]         = useState(true);
-  const [toast, setToast]             = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [reviews, setReviews]   = useState<Review[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [toast, setToast]       = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-  // AI bulk import state
-  const [bulkText, setBulkText]       = useState('');
-  const [aiLoading, setAiLoading]     = useState(false);
-  const [aiPreview, setAiPreview]     = useState<Omit<Review, 'id'>[] | null>(null);
-  const [bulkOpen, setBulkOpen]       = useState(true);
+  // AI bulk import
+  const [bulkText, setBulkText]     = useState('');
+  const [aiLoading, setAiLoading]   = useState(false);
+  const [aiPreview, setAiPreview]   = useState<Omit<Review, 'id'>[] | null>(null);
+  const [bulkOpen, setBulkOpen]     = useState(true);
 
   // Handmatig formulier
-  const [form, setForm]               = useState(EMPTY_REVIEW);
-  const [formOpen, setFormOpen]       = useState(false);
-  const [editId, setEditId]           = useState<string | null>(null);
-  const [saving, setSaving]           = useState(false);
+  const [form, setForm]     = useState(EMPTY_REVIEW);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => { fetchReviews(); }, []);
 
   async function fetchReviews() {
     setLoading(true);
     const { data } = await supabase
-      .from('reviews')
-      .select('*')
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: false });
+      .from('reviews').select('*')
+      .order('sort_order').order('created_at', { ascending: false });
     setReviews((data as Review[]) || []);
     setLoading(false);
   }
@@ -58,51 +57,41 @@ export default function ReviewsBeheer() {
     setTimeout(() => setToast(null), 4000);
   }
 
-  // ── AI IMPORT ──────────────────────────────────────────────────────────────
+  // ── AI IMPORT via Edge Function ────────────────────────────────────────────
   async function runAiImport() {
     if (!bulkText.trim()) return;
     setAiLoading(true);
     setAiPreview(null);
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4000,
-          system: `Je bent een assistent die Google reviews extraheert uit geplakte tekst.
-Geef ALLEEN een JSON array terug, geen uitleg, geen markdown, geen backticks.
-Elk object heeft: naam (string), bedrijf (string, mag leeg zijn), sterren (integer 1-5), tekst (string), datum (string YYYY-MM-DD formaat).
-Als datum onduidelijk is gebruik dan "${new Date().toISOString().split('T')[0]}".
-Als sterren onduidelijk zijn gebruik dan 5.
-Verwijder geen tekst uit de review, geef hem volledig terug.`,
-          messages: [{
-            role: 'user',
-            content: `Extraheer alle reviews uit deze tekst en geef een JSON array terug:\n\n${bulkText}`
-          }]
-        })
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      const res = await supabase.functions.invoke('parse-reviews', {
+        body: { text: bulkText },
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
-      const data = await res.json();
-      const raw = data.content?.[0]?.text || '';
-      const parsed = JSON.parse(raw);
+      if (res.error) throw new Error(res.error.message);
 
-      if (!Array.isArray(parsed)) throw new Error('Geen array ontvangen');
+      const { reviews: parsed, error: fnError } = res.data;
+      if (fnError) throw new Error(fnError);
+      if (!Array.isArray(parsed)) throw new Error('Geen reviews ontvangen');
 
+      const today = new Date().toISOString().split('T')[0];
       const withDefaults = parsed.map((r: any, i: number) => ({
         naam:         r.naam        || 'Onbekend',
         bedrijf:      r.bedrijf     || '',
         sterren:      Math.min(5, Math.max(1, parseInt(r.sterren) || 5)),
         tekst:        r.tekst       || '',
-        datum:        r.datum       || new Date().toISOString().split('T')[0],
+        datum:        r.datum       || today,
         is_published: true,
         sort_order:   i,
       }));
 
       setAiPreview(withDefaults);
-    } catch (e) {
-      showToast('AI kon de reviews niet verwerken. Probeer de tekst duidelijker te plakken.', 'error');
+    } catch (e: any) {
+      showToast('AI fout: ' + (e.message || 'Onbekende fout'), 'error');
     }
     setAiLoading(false);
   }
@@ -122,7 +111,7 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
     setSaving(false);
   }
 
-  // ── HANDMATIG ──────────────────────────────────────────────────────────────
+  // ── HANDMATIG ─────────────────────────────────────────────────────────────
   function startEdit(r: Review) {
     setForm({ naam: r.naam, bedrijf: r.bedrijf, sterren: r.sterren, tekst: r.tekst, datum: r.datum, is_published: r.is_published, sort_order: r.sort_order });
     setEditId(r.id);
@@ -156,7 +145,6 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
     showToast('Verwijderd');
   }
 
-  // ── RENDER ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
 
@@ -196,7 +184,7 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
             </div>
             <div className="text-left">
               <p className="font-bold text-gray-900 text-sm">AI Bulk import</p>
-              <p className="text-xs text-gray-400">Plak al je Google reviews in één keer — AI doet de rest</p>
+              <p className="text-xs text-gray-400">Plak al je Google reviews — AI verwerkt ze automatisch</p>
             </div>
           </div>
           {bulkOpen ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
@@ -205,12 +193,12 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
         {bulkOpen && (
           <div className="px-6 pb-6 border-t border-gray-50">
             <div className="mt-5 bg-purple-50 border border-purple-100 rounded-xl p-4 mb-4">
-              <p className="text-xs text-purple-700 font-semibold mb-1">📋 Zo werkt het:</p>
-              <ol className="text-xs text-purple-600 space-y-1 list-decimal list-inside">
-                <li>Ga naar je Google Maps bedrijfspagina</li>
-                <li>Klik op "Reviews" → selecteer alle tekst op de pagina (Ctrl+A) → kopieer (Ctrl+C)</li>
-                <li>Plak alles hieronder in het tekstvak</li>
-                <li>Klik op "Verwerk met AI" — klaar!</li>
+              <p className="text-xs text-purple-700 font-semibold mb-2">📋 Zo werkt het:</p>
+              <ol className="text-xs text-purple-600 space-y-1.5 list-decimal list-inside">
+                <li>Ga naar <strong>Google Maps</strong> → zoek je bedrijf → klik op "Reviews"</li>
+                <li>Scroll naar beneden zodat alle reviews geladen zijn</li>
+                <li>Selecteer alle tekst op de pagina (<strong>Ctrl+A</strong>) → kopieer (<strong>Ctrl+C</strong>)</li>
+                <li>Plak hieronder (<strong>Ctrl+V</strong>) → klik "Verwerk met AI"</li>
               </ol>
             </div>
 
@@ -234,7 +222,8 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
                 }
               </button>
               {bulkText && (
-                <button onClick={() => { setBulkText(''); setAiPreview(null); }} className="text-sm text-gray-400 hover:text-gray-600 transition flex items-center gap-1">
+                <button onClick={() => { setBulkText(''); setAiPreview(null); }}
+                  className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
                   <X className="h-3.5 w-3.5" /> Wissen
                 </button>
               )}
@@ -264,7 +253,7 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
                           <span className="font-semibold text-sm text-gray-900">{r.naam}</span>
                           {r.bedrijf && <span className="text-xs text-gray-400 ml-2">— {r.bedrijf}</span>}
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex gap-0.5 flex-shrink-0">
                           {[1,2,3,4,5].map(s => (
                             <Star key={s} className={`h-3.5 w-3.5 ${s <= r.sterren ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`} />
                           ))}
@@ -306,8 +295,8 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
               <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sterren</label>
               <div className="flex items-center gap-1 mt-1">
                 {[1,2,3,4,5].map(s => (
-                  <button key={s} onClick={() => setForm(p => ({ ...p, sterren: s }))} className="p-0.5">
-                    <Star className={`h-6 w-6 transition-colors ${s <= form.sterren ? 'fill-amber-400 text-amber-400' : 'text-gray-200 hover:text-amber-300'}`} />
+                  <button key={s} onClick={() => setForm(p => ({ ...p, sterren: s }))}>
+                    <Star className={`h-7 w-7 transition-colors ${s <= form.sterren ? 'fill-amber-400 text-amber-400' : 'text-gray-200 hover:text-amber-300'}`} />
                   </button>
                 ))}
               </div>
@@ -326,10 +315,8 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setForm(p => ({ ...p, is_published: !p.is_published }))}
-                className={`relative w-10 h-5 rounded-full transition-colors ${form.is_published ? 'bg-smartlease-teal' : 'bg-gray-300'}`}
-              >
+              <button onClick={() => setForm(p => ({ ...p, is_published: !p.is_published }))}
+                className={`relative w-10 h-5 rounded-full transition-colors ${form.is_published ? 'bg-smartlease-teal' : 'bg-gray-300'}`}>
                 <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${form.is_published ? 'translate-x-5' : 'translate-x-0.5'}`} />
               </button>
               <span className="text-sm text-gray-600">Gepubliceerd</span>
@@ -356,11 +343,12 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
       ) : reviews.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
           <Star className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-400 text-sm">Nog geen reviews. Gebruik de AI import hierboven!</p>
+          <p className="text-gray-400 text-sm font-medium">Nog geen reviews.</p>
+          <p className="text-gray-300 text-xs mt-1">Gebruik de AI import hierboven om snel te starten!</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
             <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
               {reviews.filter(r => r.is_published).length} gepubliceerd · {reviews.filter(r => !r.is_published).length} verborgen
             </span>
@@ -368,17 +356,13 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
           <div className="divide-y divide-gray-50">
             {reviews.map(r => (
               <div key={r.id} className="flex items-start gap-3 px-5 py-4 hover:bg-gray-50/50 transition group">
-                <GripVertical className="h-4 w-4 text-gray-300 flex-shrink-0 mt-1" />
-
-                {/* Avatar */}
-                <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold text-white"
-                  style={{ background: `hsl(${r.naam.charCodeAt(0) * 7 % 360}, 60%, 50%)` }}>
+                <GripVertical className="h-4 w-4 text-gray-200 flex-shrink-0 mt-2" />
+                <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold text-white mt-0.5"
+                  style={{ background: `hsl(${r.naam.charCodeAt(0) * 7 % 360}, 55%, 48%)` }}>
                   {r.naam.charAt(0).toUpperCase()}
                 </div>
-
-                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
                     <span className="font-semibold text-sm text-gray-900">{r.naam}</span>
                     {r.bedrijf && <span className="text-xs text-gray-400">— {r.bedrijf}</span>}
                     <div className="flex gap-0.5">
@@ -390,19 +374,22 @@ Verwijder geen tekst uit de review, geef hem volledig terug.`,
                       <span className="text-[10px] bg-orange-100 text-orange-600 font-bold px-2 py-0.5 rounded-full">Verborgen</span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">{r.tekst}</p>
-                  <p className="text-[11px] text-gray-300 mt-1">{new Date(r.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                  <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{r.tekst}</p>
+                  <p className="text-[11px] text-gray-300 mt-1">
+                    {new Date(r.datum).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition flex-shrink-0">
-                  <button onClick={() => togglePublished(r)} className="p-2 hover:bg-gray-100 rounded-lg transition" title={r.is_published ? 'Verbergen' : 'Publiceren'}>
+                  <button onClick={() => togglePublished(r)} title={r.is_published ? 'Verbergen' : 'Publiceren'}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition">
                     {r.is_published ? <Eye className="h-4 w-4 text-smartlease-teal" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
                   </button>
-                  <button onClick={() => startEdit(r)} className="p-2 hover:bg-blue-50 rounded-lg transition text-gray-400 hover:text-blue-500">
-                    <Save className="h-4 w-4" />
+                  <button onClick={() => startEdit(r)} title="Bewerken"
+                    className="p-2 hover:bg-blue-50 rounded-lg transition text-gray-400 hover:text-blue-500">
+                    <PenLine className="h-4 w-4" />
                   </button>
-                  <button onClick={() => deleteReview(r.id)} className="p-2 hover:bg-red-50 rounded-lg transition text-gray-400 hover:text-red-500">
+                  <button onClick={() => deleteReview(r.id)} title="Verwijderen"
+                    className="p-2 hover:bg-red-50 rounded-lg transition text-gray-400 hover:text-red-500">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
