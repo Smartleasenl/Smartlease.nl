@@ -25,6 +25,7 @@ import { vehicleApi } from '../services/api';
 import { LeaseCalculator, type CalculatorState } from '../components/LeaseCalculator';
 import { proxyLargeImage, proxyThumb } from '../utils/imageProxy';
 import { supabase } from '../lib/supabase';
+import OfferteModal from '../components/OfferteModal';
 
 // ─── Accordion Section ───────────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ export function VehicleDetailPage() {
   const [imageLoading, setImageLoading] = useState(false);
   const [calculatorState, setCalculatorState] = useState<CalculatorState | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [offerteOpen, setOfferteOpen] = useState(false);
 
   // Touch/swipe refs
   const touchStartX = useRef(0);
@@ -240,33 +242,25 @@ export function VehicleDetailPage() {
     window.open(`https://wa.me/31613669328?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const vehicleState = () => {
-    if (!vehicle) return {};
-    return {
-      vehicle: {
-        id: vehicle.id,
-        merk: vehicle.merk,
-        model: vehicle.model,
-        uitvoering: vehicle.uitvoering,
-        bouwjaar: vehicle.bouwjaar_year,
-        verkoopprijs: vehicle.verkoopprijs,
-        brandstof: vehicle.brandstof,
-        transmissie: vehicle.transmissie,
-        kmstand: vehicle.kmstand,
-        small_picture: vehicle.small_picture,
-      },
-      calculator: calculatorState,
-    };
-  };
-
-  const handleOfferteNavigate = () => {
-    if (!vehicle) return;
-    navigate('/offerte', { state: vehicleState() });
-  };
-
   const handleBelMijNavigate = () => {
     if (!vehicle) return;
-    navigate('/bel-mij', { state: vehicleState() });
+    navigate('/bel-mij', {
+      state: {
+        vehicle: {
+          id: vehicle.id,
+          merk: vehicle.merk,
+          model: vehicle.model,
+          uitvoering: vehicle.uitvoering,
+          bouwjaar: vehicle.bouwjaar_year,
+          verkoopprijs: vehicle.verkoopprijs,
+          brandstof: vehicle.brandstof,
+          transmissie: vehicle.transmissie,
+          kmstand: vehicle.kmstand,
+          small_picture: vehicle.small_picture,
+        },
+        calculator: calculatorState,
+      },
+    });
   };
 
   const handleBack = () => {
@@ -277,6 +271,10 @@ export function VehicleDetailPage() {
       navigate('/aanbod');
     }
   };
+
+  const vehicleInfo = vehicle
+    ? `${vehicle.merk} ${vehicle.model} ${vehicle.uitvoering}`
+    : '';
 
   if (loading) {
     return (
@@ -346,8 +344,10 @@ export function VehicleDetailPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 md:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+
           {/* ════════════ LEFT COLUMN ════════════ */}
           <div className="lg:col-span-8">
+
             {/* ── Hero Image Gallery ── */}
             <div className="animate-fade-up opacity-0 rounded-2xl overflow-hidden bg-white shadow-sm mb-5">
               <div
@@ -487,7 +487,7 @@ export function VehicleDetailPage() {
               <button onClick={handleWhatsApp} className="w-full bg-[#25D366] hover:bg-[#20c05c] text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-green-500/20 text-sm">
                 <MessageCircle className="h-5 w-5" /><span>WhatsApp over deze auto</span>
               </button>
-              <button onClick={handleOfferteNavigate} className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-teal-500/20 text-sm">
+              <button onClick={() => setOfferteOpen(true)} className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-teal-500/20 text-sm">
                 <FileText className="h-5 w-5" /><span>Gratis offerte aanvragen</span>
               </button>
               <button onClick={handleBelMijNavigate} className="w-full bg-white hover:bg-gray-50 text-smartlease-blue border-2 border-smartlease-blue py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all text-sm">
@@ -543,7 +543,6 @@ export function VehicleDetailPage() {
                 )}
               </AccordionSection>
 
-              {/* ── Verkoper — alleen zichtbaar voor admin ── */}
               {isAdmin && (
                 <AccordionSection title="Verkoper (admin)">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -578,12 +577,11 @@ export function VehicleDetailPage() {
           {/* ════════════ RIGHT SIDEBAR (desktop) ════════════ */}
           <div className="hidden lg:block lg:col-span-4">
             <div className="sticky top-20 space-y-4">
-              {/* CTA Buttons */}
               <div className="space-y-2.5">
                 <button onClick={handleWhatsApp} className="w-full bg-[#25D366] hover:bg-[#20c05c] text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-green-500/20 text-sm">
                   <MessageCircle className="h-5 w-5" /><span>WhatsApp over deze auto</span>
                 </button>
-                <button onClick={handleOfferteNavigate} className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-teal-500/20 text-sm">
+                <button onClick={() => setOfferteOpen(true)} className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-teal-500/20 text-sm">
                   <FileText className="h-5 w-5" /><span>Gratis offerte aanvragen</span>
                 </button>
                 <button onClick={handleBelMijNavigate} className="w-full bg-white hover:bg-gray-50 text-smartlease-blue border-2 border-smartlease-blue py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2.5 transition-all text-sm">
@@ -591,7 +589,6 @@ export function VehicleDetailPage() {
                 </button>
               </div>
 
-              {/* Lease Calculator */}
               {vehicle.verkoopprijs > 0 && (
                 <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
                   <LeaseCalculator vehiclePrice={vehicle.verkoopprijs} onChange={setCalculatorState} />
@@ -620,11 +617,20 @@ export function VehicleDetailPage() {
               </>
             )}
           </div>
-          <button onClick={handleOfferteNavigate} className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2">
+          <button onClick={() => setOfferteOpen(true)} className="bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2">
             <FileText className="h-4 w-4" /><span>Gratis offerte</span>
           </button>
         </div>
       </div>
+
+      {/* ── Offerte Modal ── */}
+      <OfferteModal
+        isOpen={offerteOpen}
+        onClose={() => setOfferteOpen(false)}
+        vehicleId={vehicle.id}
+        vehicleInfo={vehicleInfo}
+        calculatorState={calculatorState}
+      />
     </div>
   );
 }
