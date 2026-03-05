@@ -113,6 +113,7 @@ function App() {
           <Route path="/financial-lease" element={<PlaceholderPage title="Financial Lease" />} />
           <Route path="/meer-informatie" element={<PlaceholderPage title="Meer Informatie" />} />
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
+          <Route path="/financial-lease/*" element={<InfoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
