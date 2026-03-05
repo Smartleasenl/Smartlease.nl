@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Gauge, Fuel, Zap, Settings2, Car } from 'lucide-react';
+import { Gauge, Fuel, Zap, Settings2 } from 'lucide-react';
 import type { Vehicle } from '../types/vehicle';
 import { proxyThumb } from '../utils/imageProxy';
 
@@ -22,45 +22,45 @@ function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
 }
 
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
-const [imgError, setImgError] = useState(false);
-const [checked, setChecked] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [checked, setChecked] = useState(false);
 
-const rawUrl = vehicle.external_id && vehicle.small_picture
-  ? proxyThumb(vehicle.external_id)
-  : vehicle.small_picture || null;
+  const rawUrl = vehicle.external_id && vehicle.small_picture
+    ? proxyThumb(vehicle.external_id)
+    : vehicle.small_picture || null;
 
-useEffect(() => {
-  if (!rawUrl) { setChecked(true); return; }
-  const img = new Image();
-  img.onload = () => {
-    if (img.naturalWidth === 946 && img.naturalHeight === 473) {
+  useEffect(() => {
+    if (!rawUrl) { setChecked(true); return; }
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth === 946 && img.naturalHeight === 473) {
+        setImgError(true);
+      }
+      setChecked(true);
+    };
+    img.onerror = () => {
       setImgError(true);
-    }
-    setChecked(true);
+      setChecked(true);
+    };
+    img.src = rawUrl;
+  }, [rawUrl]);
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return 'Prijs op aanvraag';
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
   };
-  img.onerror = () => {
-    setImgError(true);
-    setChecked(true);
+
+  const formatKm = (km: number) => {
+    return new Intl.NumberFormat('nl-NL').format(km) + ' km';
   };
-  img.src = rawUrl;
-}, [rawUrl]);
 
-const formatPrice = (price: number) => {
-  if (price === 0) return 'Prijs op aanvraag';
-  return new Intl.NumberFormat('nl-NL', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(price);
-};
-
-const formatKm = (km: number) => {
-  return new Intl.NumberFormat('nl-NL').format(km) + ' km';
-};
-
-const imageUrl = rawUrl;
-const showPlaceholder = !imageUrl || imgError;
+  const imageUrl = rawUrl;
+  const showPlaceholder = !imageUrl || imgError;
 
   return (
     <div
@@ -73,22 +73,23 @@ const showPlaceholder = !imageUrl || imgError;
           <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
         ) : (
           <>
-<img
-  src={imageUrl!}
-  alt={`${vehicle.merk} ${vehicle.model}`}
-  className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
-  loading="lazy"
-  onError={() => setImgError(true)}
-onLoad={(e) => {
-  const img = e.currentTarget;
-  if (
-    img.naturalWidth === 0 ||
-    img.naturalWidth < 10 ||
-    (img.naturalWidth === 946 && img.naturalHeight === 473)
-  ) {
-    setImgError(true);
-  }
-}}
+            <img
+              src={imageUrl!}
+              alt={`${vehicle.merk} ${vehicle.model}`}
+              className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+              loading="lazy"
+              onError={() => setImgError(true)}
+              onLoad={(e) => {
+                const img = e.currentTarget;
+                if (
+                  img.naturalWidth === 0 ||
+                  img.naturalWidth < 10 ||
+                  (img.naturalWidth === 946 && img.naturalHeight === 473)
+                ) {
+                  setImgError(true);
+                }
+              }}
+            />
             {/* Gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </>
