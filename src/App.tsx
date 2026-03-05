@@ -8,6 +8,7 @@ import { KeuzehulpPage } from './pages/KeuzehulpPage';
 import { ContactPage } from './pages/ContactPage';
 import { OffertePage } from './pages/OffertePage';
 import { BelMijPage } from './pages/BelMijPage';
+import InfoPage from './pages/InfoPage';
 
 // Admin imports
 import LoginPage from './pages/admin/LoginPage';
@@ -110,10 +111,9 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
-          <Route path="/financial-lease" element={<PlaceholderPage title="Financial Lease" />} />
+          <Route path="/financial-lease/*" element={<InfoPage />} />
           <Route path="/meer-informatie" element={<PlaceholderPage title="Meer Informatie" />} />
           <Route path="*" element={<PlaceholderPage title="Pagina niet gevonden" />} />
-          <Route path="/financial-lease/*" element={<InfoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
