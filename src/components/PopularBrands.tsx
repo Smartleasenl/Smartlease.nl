@@ -28,7 +28,7 @@ const leaseTypes = [
     title: 'Operational Lease',
     description: 'All-in maandprijs, volledig ontzorgd',
     image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?auto=format&fit=crop&w=800&q=80',
-    link: '/meer-informatie/verschillende-leasevormen',
+    link: '/financial-lease/operational-lease',
     btnLabel: 'Meer informatie →',
     gradient: 'from-gray-900/70 via-gray-900/40 to-transparent',
   },
