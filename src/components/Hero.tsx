@@ -42,6 +42,7 @@ interface Suggestion {
   merk: string;
   model?: string;
   label: string;
+  sublabel?: string;
 }
 
 export function Hero() {
@@ -56,65 +57,14 @@ export function Hero() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  // Cache van geladen modellen per merk
+  const modelCache = useRef<Record<string, ModelOption[]>>({});
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     vehicleApi.getFilters().then(setFilters);
     vehicleApi.search({ per_page: 1 }).then((data) => setTotalCount(data.total));
   }, []);
-
-  useEffect(() => {
-    if (selectedMerk) {
-      vehicleApi.getModels(selectedMerk).then(setModels);
-    } else {
-      setModels([]);
-      setSelectedModel('');
-    }
-  }, [selectedMerk]);
-
-  // Genereer suggesties op basis van zoekquery
-  useEffect(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q || !filters) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const results: Suggestion[] = [];
-
-    // Merken die matchen
-    const matchedMerken = filters.merken.filter(m => m.toLowerCase().includes(q));
-    matchedMerken.slice(0, 5).forEach(merk => {
-      results.push({ type: 'merk', merk, label: merk });
-    });
-
-    // Als er een geselecteerd merk is, zoek ook in modellen
-    if (selectedMerk && models.length > 0) {
-      models
-        .filter(m => m.model.toLowerCase().includes(q))
-        .slice(0, 5)
-        .forEach(m => {
-          results.push({ type: 'model', merk: selectedMerk, model: m.model, label: `${selectedMerk} ${m.model}` });
-        });
-    } else {
-      // Zoek in alle merken+modellen via query
-      // Toon merken waarvan de naam matcht als "merk model" suggestie
-      filters.merken.forEach(merk => {
-        const merkLower = merk.toLowerCase();
-        if (q.includes(merkLower) || merkLower.includes(q.split(' ')[0])) {
-          const modelPart = q.replace(merkLower, '').trim();
-          if (modelPart && results.length < 8) {
-            results.push({ type: 'model', merk, model: modelPart, label: `${merk} "${modelPart}"` });
-          }
-        }
-      });
-    }
-
-    setSuggestions(results.slice(0, 7));
-    setShowSuggestions(results.length > 0);
-    setActiveSuggestion(-1);
-  }, [searchQuery, filters, models, selectedMerk]);
 
   // Klik buiten sluit suggesties
   useEffect(() => {
@@ -127,16 +77,125 @@ export function Hero() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Helper: laad modellen voor een merk (gecached)
+  const loadModels = async (merk: string): Promise<ModelOption[]> => {
+    if (modelCache.current[merk]) return modelCache.current[merk];
+    const result = await vehicleApi.getModels(merk);
+    modelCache.current[merk] = result;
+    return result;
+  };
+
+  // Genereer suggesties op basis van zoekquery
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q || !filters) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const qLower = q.toLowerCase();
+
+    const buildSuggestions = async () => {
+      const results: Suggestion[] = [];
+
+      // Stap 1: zoek welk merk er in de query zit
+      // Sorteer merken op langste eerst zodat "Mercedes-Benz" voor "Mercedes" matcht
+      const sortedMerken = [...filters.merken].sort((a, b) => b.length - a.length);
+
+      let matchedMerk: string | null = null;
+      let modelQuery = '';
+
+      for (const merk of sortedMerken) {
+        if (qLower.startsWith(merk.toLowerCase())) {
+          matchedMerk = merk;
+          modelQuery = q.slice(merk.length).trim();
+          break;
+        }
+      }
+
+      if (matchedMerk && modelQuery) {
+        // Gebruiker heeft "Audi Q" getypt — laad modellen van Audi en filter op "Q"
+        const merkModels = await loadModels(matchedMerk);
+        const filtered = merkModels.filter(m =>
+          m.model.toLowerCase().includes(modelQuery.toLowerCase())
+        );
+
+        filtered.slice(0, 7).forEach(m => {
+          results.push({
+            type: 'model',
+            merk: matchedMerk!,
+            model: m.model,
+            label: `${matchedMerk} ${m.model}`,
+            sublabel: `${m.count} auto's`,
+          });
+        });
+
+        // Als geen modellen gevonden, toon alleen het merk
+        if (results.length === 0) {
+          results.push({
+            type: 'merk',
+            merk: matchedMerk,
+            label: matchedMerk,
+            sublabel: 'Alle modellen',
+          });
+        }
+      } else if (matchedMerk && !modelQuery) {
+        // Exacte merknaam getypt, toon merk + populaire modellen
+        results.push({
+          type: 'merk',
+          merk: matchedMerk,
+          label: matchedMerk,
+          sublabel: 'Alle modellen',
+        });
+
+        const merkModels = await loadModels(matchedMerk);
+        merkModels.slice(0, 5).forEach(m => {
+          results.push({
+            type: 'model',
+            merk: matchedMerk!,
+            model: m.model,
+            label: `${matchedMerk} ${m.model}`,
+            sublabel: `${m.count} auto's`,
+          });
+        });
+      } else {
+        // Geen merk herkend — zoek op merken die de query bevatten
+        const matchedMerken = sortedMerken.filter(m =>
+          m.toLowerCase().includes(qLower)
+        );
+
+        matchedMerken.slice(0, 6).forEach(merk => {
+          results.push({
+            type: 'merk',
+            merk,
+            label: merk,
+            sublabel: 'Alle modellen',
+          });
+        });
+      }
+
+      setSuggestions(results.slice(0, 8));
+      setShowSuggestions(results.length > 0);
+      setActiveSuggestion(-1);
+    };
+
+    buildSuggestions();
+  }, [searchQuery, filters]);
+
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setShowSuggestions(false);
     if (suggestion.type === 'merk') {
       setSearchQuery(suggestion.merk);
       setSelectedMerk(suggestion.merk);
       setSelectedModel('');
+      // Laad ook modellen voor de dropdown
+      loadModels(suggestion.merk).then(setModels);
     } else {
-      setSearchQuery(suggestion.label);
+      setSearchQuery(`${suggestion.merk} ${suggestion.model}`);
       setSelectedMerk(suggestion.merk);
       setSelectedModel(suggestion.model || '');
+      loadModels(suggestion.merk).then(setModels);
     }
   };
 
@@ -158,13 +217,16 @@ export function Hero() {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
+      e.preventDefault();
       setActiveSuggestion(prev => Math.min(prev + 1, suggestions.length - 1));
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
       setActiveSuggestion(prev => Math.max(prev - 1, -1));
     } else if (e.key === 'Enter') {
       if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
         handleSuggestionClick(suggestions[activeSuggestion]);
       } else {
+        setShowSuggestions(false);
         handleSearch();
       }
     } else if (e.key === 'Escape') {
@@ -176,6 +238,7 @@ export function Hero() {
     setSearchQuery('');
     setSelectedMerk('');
     setSelectedModel('');
+    setModels([]);
     setSuggestions([]);
     setShowSuggestions(false);
   };
@@ -204,7 +267,6 @@ export function Hero() {
             {' '}auto's
           </p>
 
-          {/* Search form */}
           <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl border border-gray-100">
 
             {/* Zoekbalk met suggesties */}
@@ -216,7 +278,7 @@ export function Hero() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                placeholder="Zoek op merk, model, uitvoering..."
+                placeholder="Zoek op merk of model, bijv. Audi Q5..."
                 className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all"
               />
               {searchQuery && (
@@ -230,22 +292,25 @@ export function Hero() {
 
               {/* Suggesties dropdown */}
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden text-left">
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
+                      onMouseDown={(e) => e.preventDefault()} // voorkom blur voor click
                       onClick={() => handleSuggestionClick(s)}
-                      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
-                        i === activeSuggestion ? 'bg-teal-50 text-smartlease-teal' : 'hover:bg-gray-50'
+                      className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors border-b border-gray-50 last:border-0 ${
+                        i === activeSuggestion ? 'bg-teal-50' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {s.label}
-                      </span>
-                      <span className="ml-auto text-xs text-gray-400">
-                        {s.type === 'merk' ? 'Merk' : 'Model'}
-                      </span>
+                      <Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm font-medium ${i === activeSuggestion ? 'text-smartlease-teal' : 'text-gray-800'}`}>
+                          {s.label}
+                        </span>
+                      </div>
+                      {s.sublabel && (
+                        <span className="text-xs text-gray-400 flex-shrink-0">{s.sublabel}</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -257,9 +322,12 @@ export function Hero() {
               <select
                 value={selectedMerk}
                 onChange={(e) => {
-                  setSelectedMerk(e.target.value);
-                  setSearchQuery(e.target.value);
+                  const merk = e.target.value;
+                  setSelectedMerk(merk);
+                  setSearchQuery(merk);
                   setSelectedModel('');
+                  if (merk) loadModels(merk).then(setModels);
+                  else setModels([]);
                 }}
                 className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-white font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all appearance-none cursor-pointer hover:border-gray-400"
               >
