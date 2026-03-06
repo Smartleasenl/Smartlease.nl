@@ -46,7 +46,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
   // Primair: proxied thumbnail. Fallback: small_picture rechtstreeks.
   const proxyUrl = vehicle.external_id ? proxyThumb(vehicle.external_id) : null;
-  const fallbackUrl = vehicle.small_picture || null;
+  cconst fallbackUrl = null; // Geen directe fallback, alleen proxy
 
   const [imageUrl, setImageUrl] = useState<string | null>(proxyUrl || fallbackUrl);
 
