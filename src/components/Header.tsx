@@ -98,6 +98,9 @@ export function Header() {
     navigate(to);
   }
 
+  // h-16 = 64px = hoogte van de mobile header
+  const HEADER_HEIGHT = 64;
+
   return (
     <>
       <style>{`
@@ -126,19 +129,34 @@ export function Header() {
         </div>
       </div>
 
-      {/* Sticky nav */}
+      {/* Sticky header — z-50 */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center justify-between h-16 md:h-20">
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden relative z-[60] p-2 -ml-2 text-gray-700 hover:text-smartlease-teal transition">
+
+            {/* Hamburger — z-[60] zodat hij boven het menu overlay (z-[55]) uitkomt */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden relative z-[60] p-2 -ml-2 text-gray-700 hover:text-smartlease-teal transition"
+              aria-label={mobileMenuOpen ? 'Menu sluiten' : 'Menu openen'}
+            >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
+
+            {/* Logo — gecentreerd op mobiel, z-[60] */}
             <Link to="/" className="absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0 flex items-center z-[60]">
               <img src="/smart-lease-logo.gif" alt="Smartlease.nl" className="h-8 md:h-12 w-auto" />
             </Link>
+
+            {/* Mobile: telefoon + WhatsApp iconen rechts — z-[60] */}
             <div className="flex md:hidden items-center space-x-3 z-[60]">
-              <a href="tel:0858008600" className="p-2 text-gray-700 hover:text-smartlease-teal transition"><Phone className="h-5 w-5" /></a>
-              <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" className="p-2 bg-green-500 rounded-full text-white hover:bg-green-600 transition"><MessageCircle className="h-5 w-5" /></a>
+              <a href="tel:0858008600" className="p-2 text-gray-700 hover:text-smartlease-teal transition">
+                <Phone className="h-5 w-5" />
+              </a>
+              <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer"
+                className="p-2 bg-green-500 rounded-full text-white hover:bg-green-600 transition">
+                <MessageCircle className="h-5 w-5" />
+              </a>
             </div>
 
             {/* Desktop nav */}
@@ -146,59 +164,58 @@ export function Header() {
               {NAV_ITEMS.map((item) => {
                 const isOpen = openDropdown === item.dropdownKey;
 
-// ── AANBOD dropdown (statisch) ──
-if (item.dropdownKey === 'aanbod') {
-  const isActive = location.pathname === '/aanbod';
-  return (
-    <div key={item.to} className="relative">
-      <div className="flex items-center gap-0.5">
-        <Link
-          to="/aanbod"
-          className={`font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
-        >
-          {item.label}
-        </Link>
-        <button
-          onClick={() => setOpenDropdown(isOpen ? null : 'aanbod')}
-          className={`p-0.5 transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
-        >
-          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
-      </div>
-      {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
-
-      {isOpen && (
-        <div className="drop-in absolute top-[calc(100%+1.35rem)] left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
-          <div className="px-4 py-3 bg-smartlease-teal/5 border-b border-gray-100">
-            <span className="font-bold text-smartlease-teal text-sm">Ons aanbod</span>
-          </div>
-          <div className="py-2">
-            {AANBOD_SUB.map((sub) => {
-              const Icon = sub.icon;
-              const currentFull = location.pathname + location.search;
-              const isSubActive = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
-              return (
-                <button
-                  key={sub.to}
-                  onClick={() => handleAanbodLink(sub.to)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
-                    isSubActive
-                      ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
-                  {sub.label}
-                  {isSubActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-smartlease-teal" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
+                // ── AANBOD dropdown (statisch) ──
+                if (item.dropdownKey === 'aanbod') {
+                  const isActive = location.pathname === '/aanbod';
+                  return (
+                    <div key={item.to} className="relative">
+                      <div className="flex items-center gap-0.5">
+                        <Link
+                          to="/aanbod"
+                          className={`font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+                        >
+                          {item.label}
+                        </Link>
+                        <button
+                          onClick={() => setOpenDropdown(isOpen ? null : 'aanbod')}
+                          className={`p-0.5 transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+                        >
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                      </div>
+                      {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
+                      {isOpen && (
+                        <div className="drop-in absolute top-[calc(100%+1.35rem)] left-1/2 -translate-x-1/2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                          <div className="px-4 py-3 bg-smartlease-teal/5 border-b border-gray-100">
+                            <span className="font-bold text-smartlease-teal text-sm">Ons aanbod</span>
+                          </div>
+                          <div className="py-2">
+                            {AANBOD_SUB.map((sub) => {
+                              const Icon = sub.icon;
+                              const currentFull = location.pathname + location.search;
+                              const isSubActive = currentFull === sub.to || (sub.to === '/aanbod' && location.pathname === '/aanbod' && !location.search);
+                              return (
+                                <button
+                                  key={sub.to}
+                                  onClick={() => handleAanbodLink(sub.to)}
+                                  className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-colors ${
+                                    isSubActive
+                                      ? 'bg-smartlease-teal/10 text-smartlease-teal font-semibold'
+                                      : 'text-gray-700 hover:bg-gray-50 hover:text-smartlease-teal'
+                                  }`}
+                                >
+                                  <Icon className="h-4 w-4 flex-shrink-0 opacity-60" />
+                                  {sub.label}
+                                  {isSubActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-smartlease-teal" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
 
                 // ── Financial Lease / Meer informatie dropdowns (dynamisch) ──
                 if (item.hasDropdown && item.parentSlug) {
@@ -244,7 +261,8 @@ if (item.dropdownKey === 'aanbod') {
                 // ── Gewone link ──
                 const isActive = location.pathname === item.to;
                 return (
-                  <Link key={item.to} to={item.to} className={`relative font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}>
+                  <Link key={item.to} to={item.to}
+                    className={`relative font-semibold transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}>
                     {item.label}
                     {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
                   </Link>
@@ -255,7 +273,7 @@ if (item.dropdownKey === 'aanbod') {
         </div>
       </header>
 
-      {/* USP bar */}
+      {/* USP bar (niet sticky, scrollt mee) */}
       <div className="bg-smartlease-blue">
         <div className="hidden md:flex items-center justify-center space-x-8 py-2">
           {USP_ITEMS.map((usp, i) => (
@@ -275,11 +293,33 @@ if (item.dropdownKey === 'aanbod') {
         </div>
       </div>
 
-      {/* Mobile fullscreen menu */}
-      <div className={`md:hidden fixed inset-0 z-40 transition-all duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-        {/* overscroll-contain voorkomt dat scrollen in het menu de pagina erachter scrolt */}
-        <div className={`absolute inset-x-0 top-[calc(4rem+2rem)] bottom-0 bg-white overflow-y-auto overscroll-contain transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-y-0' : '-translate-y-8'}`}>
+      {/*
+        ── Mobile fullscreen menu ──────────────────────────────────────────────
+        FIX 1: z-[55] (was z-40) → nu BOVEN de sticky header (z-50),
+                maar ONDER hamburger/logo/iconen (z-[60])
+        FIX 2: top via inline style = HEADER_HEIGHT (64px) → sluit direct
+                aan op de onderkant van de header, geen witte ruimte meer.
+                (was top-[calc(4rem+2rem)] = 96px → 32px te laag)
+      */}
+      <div
+        className={`md:hidden fixed inset-x-0 bottom-0 z-[55] transition-all duration-300 ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        style={{ top: `${HEADER_HEIGHT}px` }}
+      >
+        {/* Backdrop tap-to-close */}
+        <div
+          className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+
+        {/* Sliding panel — vult de volledige ruimte onder de header */}
+        <div
+          className={`absolute inset-x-0 bottom-0 bg-white overflow-y-auto overscroll-contain transition-transform duration-300 ease-out ${
+            mobileMenuOpen ? 'translate-y-0' : '-translate-y-4'
+          }`}
+          style={{ top: 0 }}
+        >
           <nav className="px-4 pt-6 pb-4">
             {NAV_ITEMS.map((item, idx) => {
               const Icon       = item.icon;
@@ -293,9 +333,15 @@ if (item.dropdownKey === 'aanbod') {
                     <button
                       onClick={() => setMobileExpanded(isExpanded ? null : item.to)}
                       className={`w-full group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-1 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50'}`}
-                      style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
+                      style={{
+                        opacity: mobileMenuOpen ? 1 : 0,
+                        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)',
+                        transition: `opacity .3s ease ${idx * .06}s, transform .3s ease ${idx * .06}s`,
+                      }}
                     >
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}><Icon className="h-5 w-5" /></div>
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
                       <div className="flex-1 text-left min-w-0">
                         <p className={`font-bold text-base ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>{item.label}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
@@ -334,9 +380,15 @@ if (item.dropdownKey === 'aanbod') {
                     <button
                       onClick={() => setMobileExpanded(isExpanded ? null : item.to)}
                       className={`w-full group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-1 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50'}`}
-                      style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
+                      style={{
+                        opacity: mobileMenuOpen ? 1 : 0,
+                        transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)',
+                        transition: `opacity .3s ease ${idx * .06}s, transform .3s ease ${idx * .06}s`,
+                      }}
                     >
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}><Icon className="h-5 w-5" /></div>
+                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500'}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
                       <div className="flex-1 text-left min-w-0">
                         <p className={`font-bold text-base ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>{item.label}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
@@ -345,7 +397,8 @@ if (item.dropdownKey === 'aanbod') {
                     </button>
                     {isExpanded && (
                       <div className="ml-[3.75rem] mb-2 flex flex-col gap-0.5">
-                        <Link to={item.to} onClick={() => setMobileMenuOpen(false)} className="px-4 py-2.5 rounded-xl text-sm font-semibold text-smartlease-teal hover:bg-smartlease-teal/10 transition-colors">
+                        <Link to={item.to} onClick={() => setMobileMenuOpen(false)}
+                          className="px-4 py-2.5 rounded-xl text-sm font-semibold text-smartlease-teal hover:bg-smartlease-teal/10 transition-colors">
                           Overzichtspagina →
                         </Link>
                         {subPages.map((p) => {
@@ -369,9 +422,15 @@ if (item.dropdownKey === 'aanbod') {
               return (
                 <Link key={item.to} to={item.to} onClick={() => setMobileMenuOpen(false)}
                   className={`group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-2 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50 active:bg-gray-100'}`}
-                  style={{ opacity: mobileMenuOpen ? 1 : 0, transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)', transition: `opacity .3s ease ${idx * .06}s,transform .3s ease ${idx * .06}s` }}
+                  style={{
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-20px)',
+                    transition: `opacity .3s ease ${idx * .06}s, transform .3s ease ${idx * .06}s`,
+                  }}
                 >
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-smartlease-teal/10 group-hover:text-smartlease-teal'}`}><Icon className="h-5 w-5" /></div>
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors ${isActive ? 'bg-smartlease-teal text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-smartlease-teal/10 group-hover:text-smartlease-teal'}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className={`font-bold text-base ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>{item.label}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
@@ -383,21 +442,39 @@ if (item.dropdownKey === 'aanbod') {
           </nav>
 
           <div className="mx-8 h-px bg-gray-200" />
+
           <div className="px-4 py-6">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider px-4 mb-3">Contact</p>
             <a href="tel:0858008600" className="flex items-center space-x-4 px-4 py-3.5 rounded-2xl hover:bg-gray-50 transition mb-2">
-              <div className="w-11 h-11 rounded-xl bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0"><Phone className="h-5 w-5 text-smartlease-teal" /></div>
-              <div><p className="font-bold text-gray-900">085 - 80 08 600</p><p className="text-xs text-gray-400">Ma-Vr 9:00 - 18:00</p></div>
+              <div className="w-11 h-11 rounded-xl bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
+                <Phone className="h-5 w-5 text-smartlease-teal" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">085 - 80 08 600</p>
+                <p className="text-xs text-gray-400">Ma-Vr 9:00 - 18:00</p>
+              </div>
             </a>
-            <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-4 px-4 py-3.5 rounded-2xl hover:bg-gray-50 transition mb-2">
-              <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0"><MessageCircle className="h-5 w-5 text-green-500" /></div>
-              <div><p className="font-bold text-gray-900">WhatsApp</p><p className="text-xs text-gray-400">Direct antwoord</p></div>
+            <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer"
+              className="flex items-center space-x-4 px-4 py-3.5 rounded-2xl hover:bg-gray-50 transition mb-2">
+              <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">WhatsApp</p>
+                <p className="text-xs text-gray-400">Direct antwoord</p>
+              </div>
             </a>
           </div>
+
           <div className="mx-8 mb-8">
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-4 flex items-center space-x-3">
-              <div className="flex">{[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}</div>
-              <div><p className="font-bold text-gray-900 text-sm">4,9 uit 5</p><p className="text-xs text-gray-400">Klantbeoordeling</p></div>
+              <div className="flex">
+                {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 text-sm">4,9 uit 5</p>
+                <p className="text-xs text-gray-400">Klantbeoordeling</p>
+              </div>
             </div>
           </div>
         </div>
