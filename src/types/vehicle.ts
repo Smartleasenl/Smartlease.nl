@@ -68,11 +68,16 @@ export interface SearchResponse {
 
 export interface FiltersResponse {
   merken: string[];
-  categorieen: string[];
   brandstoffen: string[];
   transmissies: string[];
-  kleuren: string[];
-  totaal: number;
+  categorieen: string[];   // ← geen ë, plain ASCII
+  kleuren: string[];       // ← nieuw toegevoegd
+  ranges?: {
+    minJaar: number;
+    maxJaar: number;
+    maxKm: number;
+    maxVermogen: number;
+  };
 }
 
 export interface ModelOption {
