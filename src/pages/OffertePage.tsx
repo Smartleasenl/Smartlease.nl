@@ -140,7 +140,6 @@ export function OffertePage() {
     setLoading(false);
   };
 
-  // Auto-foto component — 4:3 verhouding, gecentreerd zodat niets wordt afgesneden
   const VehicleImage = ({ className }: { className: string }) => {
     const [imgError, setImgError] = useState(false);
     if (imageLoading) return (
@@ -181,7 +180,6 @@ export function OffertePage() {
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Voertuig</p>
               <div className="flex gap-4">
-                {/* Bevestiging: kleine 4:3 thumbnail naast tekst */}
                 <div className="w-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
                   <VehicleImage className="w-full h-full object-cover object-center" />
                 </div>
@@ -203,6 +201,7 @@ export function OffertePage() {
             {calculator && (
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Lease berekening</p>
+                {/* Volgorde: Aankoopprijs → Aanbetaling → Financieringsbedrag → Looptijd → Slottermijn → Maandbedrag */}
                 <div className="space-y-2">
                   {aankoopprijs && (
                     <div className="flex justify-between text-sm">
@@ -210,6 +209,10 @@ export function OffertePage() {
                       <span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Aanbetaling</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
+                  </div>
                   {financieringsbedrag && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Financieringsbedrag</span>
@@ -219,10 +222,6 @@ export function OffertePage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Looptijd</span>
                     <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Aanbetaling</span>
-                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Slottermijn</span>
@@ -303,7 +302,6 @@ export function OffertePage() {
               </div>
             )}
 
-            {/* Persoonlijke gegevens */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
               <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-4">
                 <User className="h-5 w-5 text-smartlease-teal" /> Persoonlijke gegevens
@@ -332,7 +330,6 @@ export function OffertePage() {
               </div>
             </div>
 
-            {/* Bedrijfsgegevens */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
               <h2 className="flex items-center gap-2 font-bold text-gray-900 mb-1">
                 <Building2 className="h-5 w-5 text-smartlease-teal" /> Bedrijfsgegevens
@@ -352,7 +349,6 @@ export function OffertePage() {
               </div>
             </div>
 
-            {/* Opmerking */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Opmerking <span className="text-gray-400 font-normal">(optioneel)</span></label>
               <textarea value={form.bericht} onChange={e => setForm({...form, bericht: e.target.value})}
@@ -373,7 +369,6 @@ export function OffertePage() {
         <div className="lg:col-span-1">
           <div className="space-y-4 sticky top-28">
 
-            {/* Auto card — 4:3 foto volledig zichtbaar, geen afsnijding */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div style={{ aspectRatio: '4/3' }} className="w-full overflow-hidden bg-gray-100">
                 <VehicleImage className="w-full h-full object-cover object-center" />
@@ -394,7 +389,7 @@ export function OffertePage() {
               </div>
             </div>
 
-            {/* Berekening */}
+            {/* Berekening sidebar — volgorde: Aankoopprijs → Aanbetaling → Financieringsbedrag → Looptijd → Slottermijn → Maandbedrag */}
             {calculator && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                 <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-3">
@@ -407,6 +402,10 @@ export function OffertePage() {
                       <span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span>
                     </div>
                   )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Aanbetaling</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
+                  </div>
                   {financieringsbedrag && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Financieringsbedrag</span>
@@ -416,10 +415,6 @@ export function OffertePage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Looptijd</span>
                     <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Aanbetaling</span>
-                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Slottermijn</span>
@@ -433,7 +428,6 @@ export function OffertePage() {
               </div>
             )}
 
-            {/* Contact */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
               <h3 className="font-bold text-gray-900 text-sm">Vragen?</h3>
               <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
