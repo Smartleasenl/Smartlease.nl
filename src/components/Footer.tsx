@@ -73,7 +73,7 @@ export function Footer() {
             <img
               src={s['footer_logo_url'] || '/smart-lease-white-logo.png'}
               alt="Smartlease.nl"
-              className="h-12 w-auto mb-5"
+              className="h-10 w-auto max-w-[200px] object-contain mb-5"
             />
 
             {tagline ? (
