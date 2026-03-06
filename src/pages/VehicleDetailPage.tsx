@@ -248,7 +248,7 @@ export function VehicleDetailPage() {
     isSwiping.current = false;
   }, [nextImage, prevImage]);
 
-  // ─── WhatsApp handler met volledige auto-info + directe link ───────────────
+  // ─── WhatsApp handler met volledige auto-info + directe smartlease.nl link ─
   const handleWhatsApp = () => {
     if (!vehicle) return;
 
@@ -256,8 +256,12 @@ export function VehicleDetailPage() {
       ? calculatorState.maandbedrag
       : berekenMaandprijs(vehicle.verkoopprijs);
 
-    // OG-preview URL zodat WhatsApp foto + titel toont als link preview
-    const autoUrl = `https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-vehicle?id=${vehicle.id}`;
+    // ✅ Directe smartlease.nl URL (geen Supabase proxy in het bericht)
+    const slug = `${vehicle.merk}-${vehicle.model}`
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
+    const autoUrl = `https://smartlease.nl/auto/${vehicle.id}/${encodeURIComponent(slug)}`;
 
     const lines = [
       'Hallo, ik heb interesse in de volgende auto:',
