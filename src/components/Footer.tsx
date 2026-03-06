@@ -1,5 +1,4 @@
 // src/components/Footer.tsx
-// Footer links worden beheerd via de admin → footer_links tabel in Supabase
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, MessageCircle, Mail, Star } from 'lucide-react';
@@ -48,18 +47,18 @@ export function Footer() {
   const s = useSiteSettings();
   const allLinks = useFooterLinks();
 
-  const aanbodLinks      = allLinks.filter(l => l.column_key === 'aanbod');
-  const flLinks          = allLinks.filter(l => l.column_key === 'financial_lease');
-  const meerInfoLinks    = allLinks.filter(l => l.column_key === 'meer_informatie');
+  const aanbodLinks   = allLinks.filter(l => l.column_key === 'aanbod');
+  const flLinks       = allLinks.filter(l => l.column_key === 'financial_lease');
+  const meerInfoLinks = allLinks.filter(l => l.column_key === 'meer_informatie');
 
-  const phone    = s['contact_phone']         || '085 - 80 08 600';
-  const phoneRaw = s['contact_phone_raw']     || '0858008600';
-  const whatsapp = s['contact_whatsapp']      || '31613669328';
-  const email    = s['contact_email']         || 'info@smartlease.nl';
-  const hours    = s['footer_openingstijden'] || 'Ma-Vr 9:00 – 18:00 | Za 10:00 – 14:00';
-  const tagline  = s['footer_tagline']        || '';
-  const copyright= s['footer_copyright']      || `© ${new Date().getFullYear()} Smartlease.nl`;
-  const reviewScore = s['review_score']       || '4,9';
+  const phone       = s['contact_phone']         || '085 - 80 08 600';
+  const phoneRaw    = s['contact_phone_raw']      || '0858008600';
+  const whatsapp    = s['contact_whatsapp']       || '31613669328';
+  const email       = s['contact_email']          || 'info@smartlease.nl';
+  const hours       = s['footer_openingstijden']  || 'Ma-Vr 9:00 – 18:00 | Za 10:00 – 14:00';
+  const tagline     = s['footer_tagline']         || '';
+  const copyright   = s['footer_copyright']       || `© ${new Date().getFullYear()} Smartlease.nl`;
+  const reviewScore = s['review_score']           || '4,9';
 
   const col1Title = s['footer_col1_title'] || 'Ons aanbod';
   const col2Title = s['footer_col2_title'] || 'Financial Lease';
@@ -76,7 +75,11 @@ export function Footer() {
               src="/smart-lease-white-logo.png"
               alt="Smartlease.nl"
               className="h-12 w-auto mb-5"
-              />
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+
             {tagline && (
               <p className="text-sm text-white/50 leading-relaxed mb-6">{tagline}</p>
             )}
@@ -96,7 +99,10 @@ export function Footer() {
 
             {/* Contactgegevens */}
             <div className="space-y-3">
-              <a href={`tel:${phoneRaw}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
+              
+                href={`tel:${phoneRaw}`}
+                className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition"
+              >
                 <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                   <Phone className="h-4 w-4 text-smartlease-teal" />
                 </div>
@@ -107,8 +113,12 @@ export function Footer() {
               </a>
 
               {s['footer_show_whatsapp'] !== 'false' && (
-                <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-sm text-white/60 hover:text-green-400 transition">
+                
+                  href={`https://wa.me/${whatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-sm text-white/60 hover:text-green-400 transition"
+                >
                   <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="h-4 w-4 text-green-400" />
                   </div>
@@ -117,7 +127,10 @@ export function Footer() {
               )}
 
               {s['footer_show_email'] !== 'false' && email && (
-                <a href={`mailto:${email}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
+                
+                  href={`mailto:${email}`}
+                  className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition"
+                >
                   <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                     <Mail className="h-4 w-4 text-smartlease-teal" />
                   </div>
@@ -186,8 +199,10 @@ export function Footer() {
               <p className="font-bold text-white text-lg">Gratis offerte?</p>
               <p className="text-sm text-white/50">Binnen 24 uur een persoonlijk voorstel op maat.</p>
             </div>
-            <Link to="/offerte"
-              className="flex-shrink-0 bg-smartlease-teal hover:bg-teal-400 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
+            <Link
+              to="/offerte"
+              className="flex-shrink-0 bg-smartlease-teal hover:bg-teal-400 text-white font-bold px-6 py-3 rounded-xl transition text-sm"
+            >
               Aanvragen →
             </Link>
           </div>
