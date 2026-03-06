@@ -223,7 +223,13 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
   const activeChips = getActiveChips();
   const activeFilterCount = activeChips.length;
 
-  if (!availableFilters) return null;
+  // Veilige fallbacks voor alle filter arrays
+  const merkenOptions = (availableFilters?.merken ?? []).map((m) => ({ label: m }));
+  const modelOptions = models.map((m) => ({ label: m.model, count: m.count }));
+  const categorieen = availableFilters?.categorieen ?? [];
+  const brandstoffen = availableFilters?.brandstoffen ?? [];
+  const transmissies = availableFilters?.transmissies ?? [];
+  const kleuren = availableFilters?.kleuren ?? [];
 
   const getCurrentBudgetValue = () => {
     if (filters.budget_min !== undefined || filters.budget_max !== undefined) {
@@ -237,12 +243,9 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
   const selectClass = 'w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all bg-white hover:border-gray-300 appearance-none cursor-pointer';
   const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5';
 
-  const merkenOptions = availableFilters.merken.map((m) => ({ label: m }));
-  const modelOptions = models.map((m) => ({ label: m.model, count: m.count }));
-
   const filterContent = (
     <div>
-      {/* Search field */}
+      {/* Zoekbalk */}
       <div className="mb-4">
         <label className={labelClass}>Zoeken</label>
         <div className="relative">
@@ -265,7 +268,7 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
         </div>
       </div>
 
-      {/* Primary filters */}
+      {/* Primaire filters */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div>
           <label className={labelClass}>Merk</label>
@@ -301,7 +304,7 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
           <label className={labelClass}>Categorie</label>
           <select value={filters.categorie || ''} onChange={(e) => handleFilterChange('categorie', e.target.value)} className={selectClass}>
             <option value="">Alle categorieën</option>
-            {availableFilters.categorieen.map((c) => (<option key={c} value={c}>{c}</option>))}
+            {categorieen.map((c) => (<option key={c} value={c}>{c}</option>))}
           </select>
         </div>
 
@@ -309,7 +312,7 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
           <label className={labelClass}>Brandstof</label>
           <select value={filters.brandstof || ''} onChange={(e) => handleFilterChange('brandstof', e.target.value)} className={selectClass}>
             <option value="">Alle brandstoffen</option>
-            {availableFilters.brandstoffen.map((b) => (<option key={b} value={b}>{b}</option>))}
+            {brandstoffen.map((b) => (<option key={b} value={b}>{b}</option>))}
           </select>
         </div>
 
@@ -317,7 +320,7 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
           <label className={labelClass}>Transmissie</label>
           <select value={filters.transmissie || ''} onChange={(e) => handleFilterChange('transmissie', e.target.value)} className={selectClass}>
             <option value="">Alle transmissies</option>
-            {availableFilters.transmissies.map((t) => (<option key={t} value={t}>{t}</option>))}
+            {transmissies.map((t) => (<option key={t} value={t}>{t}</option>))}
           </select>
         </div>
 
@@ -325,7 +328,7 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
           <label className={labelClass}>Kleur</label>
           <select value={filters.kleur || ''} onChange={(e) => handleFilterChange('kleur', e.target.value)} className={selectClass}>
             <option value="">Alle kleuren</option>
-            {availableFilters.kleuren.map((k) => (<option key={k} value={k}>{k}</option>))}
+            {kleuren.map((k) => (<option key={k} value={k}>{k}</option>))}
           </select>
         </div>
 
@@ -341,25 +344,65 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
 
       {/* Range sliders */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
-        <RangeSlider label="Bouwjaar" min={ranges.minJaar} max={ranges.maxJaar} step={1} value={[filters.jaar_min || ranges.minJaar, filters.jaar_max || ranges.maxJaar]} onChange={(v) => handleRangeChange('jaar', v)} />
-        <RangeSlider label="Kilometerstand" min={0} max={ranges.maxKm} step={5000} value={[filters.kmstand_min || 0, filters.kmstand_max || ranges.maxKm]} onChange={(v) => handleRangeChange('kmstand', v)} formatValue={(v) => `${v.toLocaleString('nl-NL')} km`} />
-        <RangeSlider label="Vermogen (pk)" min={0} max={ranges.maxVermogen} step={10} value={[filters.vermogen_min || 0, filters.vermogen_max || ranges.maxVermogen]} onChange={(v) => handleRangeChange('vermogen', v)} formatValue={(v) => `${v} pk`} />
+        <RangeSlider
+          label="Bouwjaar"
+          min={ranges.minJaar}
+          max={ranges.maxJaar}
+          step={1}
+          value={[filters.jaar_min || ranges.minJaar, filters.jaar_max || ranges.maxJaar]}
+          onChange={(v) => handleRangeChange('jaar', v)}
+        />
+        <RangeSlider
+          label="Kilometerstand"
+          min={0}
+          max={ranges.maxKm}
+          step={5000}
+          value={[filters.kmstand_min || 0, filters.kmstand_max || ranges.maxKm]}
+          onChange={(v) => handleRangeChange('kmstand', v)}
+          formatValue={(v) => `${v.toLocaleString('nl-NL')} km`}
+        />
+        <RangeSlider
+          label="Vermogen (pk)"
+          min={0}
+          max={ranges.maxVermogen}
+          step={10}
+          value={[filters.vermogen_min || 0, filters.vermogen_max || ranges.maxVermogen]}
+          onChange={(v) => handleRangeChange('vermogen', v)}
+          formatValue={(v) => `${v} pk`}
+        />
       </div>
 
-      {/* Extra options */}
+      {/* Extra opties */}
       <div className="mt-5 pt-4 border-t border-gray-100">
-        <button onClick={() => setShowExtraOptions(!showExtraOptions)} className="flex items-center space-x-2 text-sm font-semibold text-gray-600 hover:text-smartlease-teal transition">
+        <button
+          onClick={() => setShowExtraOptions(!showExtraOptions)}
+          className="flex items-center space-x-2 text-sm font-semibold text-gray-600 hover:text-smartlease-teal transition"
+        >
           <span>Extra opties</span>
           {selectedOptions.length > 0 && (
-            <span className="bg-smartlease-teal/10 text-smartlease-teal text-xs px-2 py-0.5 rounded-full font-bold">{selectedOptions.length}</span>
+            <span className="bg-smartlease-teal/10 text-smartlease-teal text-xs px-2 py-0.5 rounded-full font-bold">
+              {selectedOptions.length}
+            </span>
           )}
           <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${showExtraOptions ? 'rotate-180' : ''}`} />
         </button>
         {showExtraOptions && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 mt-3">
             {EXTRA_OPTIONS.map((option) => (
-              <label key={option.value} className={`flex items-center space-x-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all text-sm border ${selectedOptions.includes(option.value) ? 'bg-smartlease-teal/10 border-smartlease-teal/30 text-smartlease-teal font-medium' : 'border-transparent hover:bg-gray-50 text-gray-600'}`}>
-                <input type="checkbox" checked={selectedOptions.includes(option.value)} onChange={() => handleOptionToggle(option.value)} className="w-4 h-4 text-smartlease-teal border-gray-300 rounded focus:ring-smartlease-teal" />
+              <label
+                key={option.value}
+                className={`flex items-center space-x-2 px-3 py-2.5 rounded-lg cursor-pointer transition-all text-sm border ${
+                  selectedOptions.includes(option.value)
+                    ? 'bg-smartlease-teal/10 border-smartlease-teal/30 text-smartlease-teal font-medium'
+                    : 'border-transparent hover:bg-gray-50 text-gray-600'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={selectedOptions.includes(option.value)}
+                  onChange={() => handleOptionToggle(option.value)}
+                  className="w-4 h-4 text-smartlease-teal border-gray-300 rounded focus:ring-smartlease-teal"
+                />
                 <span>{option.label}</span>
               </label>
             ))}
@@ -373,11 +416,18 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
     <div>
       {/* MOBILE */}
       <div className="md:hidden">
-        <button onClick={() => setShowMobileFilters(true)} className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3.5 shadow-sm active:scale-[0.98] transition-transform">
+        <button
+          onClick={() => setShowMobileFilters(true)}
+          className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3.5 shadow-sm active:scale-[0.98] transition-transform"
+        >
           <div className="flex items-center space-x-2.5">
             <SlidersHorizontal className="h-5 w-5 text-smartlease-teal" />
             <span className="font-bold text-gray-900">Filters</span>
-            {activeFilterCount > 0 && (<span className="bg-smartlease-teal text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{activeFilterCount}</span>)}
+            {activeFilterCount > 0 && (
+              <span className="bg-smartlease-teal text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {activeFilterCount}
+              </span>
+            )}
           </div>
           <ChevronDown className="h-5 w-5 text-gray-400" />
         </button>
@@ -385,11 +435,17 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
         {activeChips.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
             {activeChips.map((chip) => (
-              <button key={chip.key} onClick={() => removeFilter(chip.key)} className="flex items-center space-x-1.5 bg-smartlease-teal/10 text-smartlease-teal pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold hover:bg-smartlease-teal/20 transition">
+              <button
+                key={chip.key}
+                onClick={() => removeFilter(chip.key)}
+                className="flex items-center space-x-1.5 bg-smartlease-teal/10 text-smartlease-teal pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold hover:bg-smartlease-teal/20 transition"
+              >
                 <span>{chip.label}</span><X className="h-3 w-3" />
               </button>
             ))}
-            <button onClick={clearFilters} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5 transition font-medium">Wis alles</button>
+            <button onClick={clearFilters} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5 transition font-medium">
+              Wis alles
+            </button>
           </div>
         )}
 
@@ -400,12 +456,23 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
                 <SlidersHorizontal className="h-5 w-5 text-smartlease-teal" />
                 <h2 className="text-lg font-bold text-gray-900">Filters</h2>
               </div>
-              <button onClick={() => setShowMobileFilters(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-700 transition"><X className="h-6 w-6" /></button>
+              <button onClick={() => setShowMobileFilters(false)} className="p-2 -mr-2 text-gray-400 hover:text-gray-700 transition">
+                <X className="h-6 w-6" />
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-5 overscroll-contain">{filterContent}</div>
+            <div className="flex-1 overflow-y-auto px-4 py-5 overscroll-contain">
+              {filterContent}
+            </div>
             <div className="border-t border-gray-100 px-4 py-3 bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.06)] flex items-center space-x-3">
-              {activeFilterCount > 0 && (<button onClick={clearFilters} className="px-4 py-3 text-sm font-semibold text-gray-500 hover:text-gray-900 transition whitespace-nowrap">Wis alles</button>)}
-              <button onClick={() => setShowMobileFilters(false)} className="flex-1 bg-smartlease-teal hover:bg-teal-600 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 transition shadow-lg active:scale-[0.98]">
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="px-4 py-3 text-sm font-semibold text-gray-500 hover:text-gray-900 transition whitespace-nowrap">
+                  Wis alles
+                </button>
+              )}
+              <button
+                onClick={() => setShowMobileFilters(false)}
+                className="flex-1 bg-smartlease-teal hover:bg-teal-600 text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center space-x-2 transition shadow-lg active:scale-[0.98]"
+              >
                 <Search className="h-4 w-4" />
                 <span>{totalResults !== undefined ? `Toon ${totalResults.toLocaleString('nl-NL')} auto's` : 'Toon resultaten'}</span>
               </button>
@@ -420,7 +487,11 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
           <div className="flex items-center space-x-2.5">
             <SlidersHorizontal className="h-5 w-5 text-smartlease-teal" />
             <h2 className="text-lg font-bold text-gray-900">Filters</h2>
-            {activeFilterCount > 0 && (<span className="bg-smartlease-teal text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">{activeFilterCount}</span>)}
+            {activeFilterCount > 0 && (
+              <span className="bg-smartlease-teal text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {activeFilterCount}
+              </span>
+            )}
           </div>
           {activeFilterCount > 0 && (
             <button onClick={clearFilters} className="flex items-center space-x-1.5 text-sm text-gray-400 hover:text-smartlease-teal transition font-medium">
@@ -432,8 +503,13 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
         {activeChips.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-5 pb-4 border-b border-gray-100">
             {activeChips.map((chip) => (
-              <button key={chip.key} onClick={() => removeFilter(chip.key)} className="flex items-center space-x-1.5 bg-smartlease-teal/10 text-smartlease-teal pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold hover:bg-smartlease-teal/20 transition group">
-                <span>{chip.label}</span><X className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition" />
+              <button
+                key={chip.key}
+                onClick={() => removeFilter(chip.key)}
+                className="flex items-center space-x-1.5 bg-smartlease-teal/10 text-smartlease-teal pl-3 pr-2 py-1.5 rounded-full text-xs font-semibold hover:bg-smartlease-teal/20 transition group"
+              >
+                <span>{chip.label}</span>
+                <X className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition" />
               </button>
             ))}
           </div>
