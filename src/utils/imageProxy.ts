@@ -7,14 +7,14 @@ function buildUrl(id: string | number, s: number, n: number): string {
   return `${SUPABASE_IMG_PROXY}?id=${id}&s=${s}&n=${n}&apikey=${ANON_KEY}`;
 }
 
-export function proxyThumb(externalId: string | number, size = 320, n = 1): string {
+export function proxyThumb(externalId: string | number, size = 640, n = 1): string {
   if (!externalId) return '';
   return buildUrl(externalId, size, n);
 }
 
 export function proxyLargeImage(externalId: string | number, n = 1): string {
   if (!externalId) return '';
-  return buildUrl(externalId, 640, n);
+  return buildUrl(externalId, 1280, n);
 }
 
 export function getProxiedImageUrl(originalUrl: string | null | undefined): string {
@@ -28,10 +28,10 @@ export function getProxiedImageUrl(originalUrl: string | null | undefined): stri
   return originalUrl;
 }
 
-export function getVehicleImageUrl(smallPicture: string | null | undefined, size = 320): string {
+export function getVehicleImageUrl(smallPicture: string | null | undefined, size = 640): string {
   if (!smallPicture) return '';
   const proxied = getProxiedImageUrl(smallPicture);
-  if (size !== 320 && proxied.includes('og-image')) {
+  if (proxied.includes('og-image')) {
     return proxied.replace(/s=\d+/, `s=${size}`);
   }
   return proxied;
