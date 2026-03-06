@@ -1,7 +1,7 @@
 // src/utils/imageProxy.ts
-// Proxiet afbeeldingen via smartlease.nl/public/img.php (VPS gewhitelisted bij nederlandmobiel.nl)
+// Proxiet afbeeldingen via Netlify serverless function (roept VPS aan met gewhitelisted IP)
 
-const VPS_IMG_PROXY = 'https://smartlease.nl/public/img.php';
+const NETLIFY_IMG_PROXY = '/.netlify/functions/img-proxy';
 
 /**
  * Genereert een proxy URL op basis van external_id
@@ -9,7 +9,7 @@ const VPS_IMG_PROXY = 'https://smartlease.nl/public/img.php';
  */
 export function proxyThumb(externalId: string | number, size: number = 320, n: number = 1): string {
   if (!externalId) return '';
-  return `${VPS_IMG_PROXY}?id=${externalId}&s=${size}&n=${n}`;
+  return `${NETLIFY_IMG_PROXY}?id=${externalId}&s=${size}&n=${n}`;
 }
 
 /**
@@ -18,26 +18,19 @@ export function proxyThumb(externalId: string | number, size: number = 320, n: n
  */
 export function proxyLargeImage(externalId: string | number, n: number = 1): string {
   if (!externalId) return '';
-  return `${VPS_IMG_PROXY}?id=${externalId}&s=640&n=${n}`;
+  return `${NETLIFY_IMG_PROXY}?id=${externalId}&s=640&n=${n}`;
 }
 
 /**
- * Converteert een nederlandmobiel.nl afbeelding URL naar een VPS proxy URL
+ * Converteert een nederlandmobiel.nl afbeelding URL naar een proxy URL
  */
 export function getProxiedImageUrl(originalUrl: string | null | undefined): string {
   if (!originalUrl) return '';
-  if (originalUrl.includes('img.php')) return originalUrl;
-  // Legacy img-proxy.php URLs ook supporten
-  if (originalUrl.includes('img-proxy')) {
-    return originalUrl.replace(
-      /https?:\/\/\d+\.\d+\.\d+\.\d+\/img-proxy\.php/,
-      VPS_IMG_PROXY
-    );
-  }
+  if (originalUrl.includes('img-proxy') || originalUrl.includes('img.php')) return originalUrl;
   const match = originalUrl.match(/nederlandmobiel\.nl\/auto\/(\d+)\/(\d+)\/(\d+)/);
   if (match) {
     const [, id, size, number] = match;
-    return `${VPS_IMG_PROXY}?id=${id}&s=${size}&n=${number}`;
+    return `${NETLIFY_IMG_PROXY}?id=${id}&s=${size}&n=${number}`;
   }
   return originalUrl;
 }
@@ -51,7 +44,7 @@ export function getVehicleImageUrl(
 ): string {
   if (!smallPicture) return '';
   const proxied = getProxiedImageUrl(smallPicture);
-  if (size !== 320 && proxied.includes('img.php')) {
+  if (size !== 320 && proxied.includes('img-proxy')) {
     return proxied.replace(/s=\d+/, `s=${size}`);
   }
   return proxied;
@@ -62,5 +55,5 @@ export function getVehicleImageUrl(
  */
 export function getOgImageUrl(externalId: string | number): string {
   if (!externalId) return 'https://smartlease.nl/smart-lease-logo.gif';
-  return `${VPS_IMG_PROXY}?id=${externalId}&s=1280&n=1`;
+  return `https://smartlease.nl/public/img.php?id=${externalId}&s=1280&n=1`;
 }
