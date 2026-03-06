@@ -2,7 +2,26 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
 import { vehicleApi } from '../services/api';
+import { supabase } from '../lib/supabase';
 import type { FiltersResponse, ModelOption } from '../types/vehicle';
+
+interface SiteSettings {
+  [key: string]: string;
+}
+
+function useSiteSettings() {
+  const [settings, setSettings] = useState<SiteSettings>({});
+  useEffect(() => {
+    supabase.from('site_settings').select('key,value').then(({ data }) => {
+      if (data) {
+        const map: SiteSettings = {};
+        data.forEach(({ key, value }: { key: string; value: string }) => { map[key] = value; });
+        setSettings(map);
+      }
+    });
+  }, []);
+  return settings;
+}
 
 function AnimatedCounter({ target }: { target: number }) {
   const [count, setCount] = useState(0);
@@ -47,6 +66,7 @@ interface Suggestion {
 
 export function Hero() {
   const navigate = useNavigate();
+  const s = useSiteSettings();
   const [filters, setFilters] = useState<FiltersResponse | null>(null);
   const [selectedMerk, setSelectedMerk] = useState('');
   const [models, setModels] = useState<ModelOption[]>([]);
@@ -57,16 +77,18 @@ export function Hero() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  // Cache van geladen modellen per merk
   const modelCache = useRef<Record<string, ModelOption[]>>({});
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Settings uitlezen
+  const heroTitle    = s['hero_title']    || 'Slimmer leasen begint hier';
+  const heroSubtitle = s['hero_subtitle'] || '';
 
   useEffect(() => {
     vehicleApi.getFilters().then(setFilters);
     vehicleApi.search({ per_page: 1 }).then((data) => setTotalCount(data.total));
   }, []);
 
-  // Klik buiten sluit suggesties
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -77,7 +99,6 @@ export function Hero() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Helper: laad modellen voor een merk (gecached)
   const loadModels = async (merk: string): Promise<ModelOption[]> => {
     if (modelCache.current[merk]) return modelCache.current[merk];
     const result = await vehicleApi.getModels(merk);
@@ -85,7 +106,6 @@ export function Hero() {
     return result;
   };
 
-  // Genereer suggesties op basis van zoekquery
   useEffect(() => {
     const q = searchQuery.trim();
     if (!q || !filters) {
@@ -98,9 +118,6 @@ export function Hero() {
 
     const buildSuggestions = async () => {
       const results: Suggestion[] = [];
-
-      // Stap 1: zoek welk merk er in de query zit
-      // Sorteer merken op langste eerst zodat "Mercedes-Benz" voor "Mercedes" matcht
       const sortedMerken = [...filters.merken].sort((a, b) => b.length - a.length);
 
       let matchedMerk: string | null = null;
@@ -115,12 +132,10 @@ export function Hero() {
       }
 
       if (matchedMerk && modelQuery) {
-        // Gebruiker heeft "Audi Q" getypt — laad modellen van Audi en filter op "Q"
         const merkModels = await loadModels(matchedMerk);
         const filtered = merkModels.filter(m =>
           m.model.toLowerCase().includes(modelQuery.toLowerCase())
         );
-
         filtered.slice(0, 7).forEach(m => {
           results.push({
             type: 'model',
@@ -130,25 +145,11 @@ export function Hero() {
             sublabel: `${m.count} auto's`,
           });
         });
-
-        // Als geen modellen gevonden, toon alleen het merk
         if (results.length === 0) {
-          results.push({
-            type: 'merk',
-            merk: matchedMerk,
-            label: matchedMerk,
-            sublabel: 'Alle modellen',
-          });
+          results.push({ type: 'merk', merk: matchedMerk, label: matchedMerk, sublabel: 'Alle modellen' });
         }
       } else if (matchedMerk && !modelQuery) {
-        // Exacte merknaam getypt, toon merk + populaire modellen
-        results.push({
-          type: 'merk',
-          merk: matchedMerk,
-          label: matchedMerk,
-          sublabel: 'Alle modellen',
-        });
-
+        results.push({ type: 'merk', merk: matchedMerk, label: matchedMerk, sublabel: 'Alle modellen' });
         const merkModels = await loadModels(matchedMerk);
         merkModels.slice(0, 5).forEach(m => {
           results.push({
@@ -160,18 +161,9 @@ export function Hero() {
           });
         });
       } else {
-        // Geen merk herkend — zoek op merken die de query bevatten
-        const matchedMerken = sortedMerken.filter(m =>
-          m.toLowerCase().includes(qLower)
-        );
-
+        const matchedMerken = sortedMerken.filter(m => m.toLowerCase().includes(qLower));
         matchedMerken.slice(0, 6).forEach(merk => {
-          results.push({
-            type: 'merk',
-            merk,
-            label: merk,
-            sublabel: 'Alle modellen',
-          });
+          results.push({ type: 'merk', merk, label: merk, sublabel: 'Alle modellen' });
         });
       }
 
@@ -189,7 +181,6 @@ export function Hero() {
       setSearchQuery(suggestion.merk);
       setSelectedMerk(suggestion.merk);
       setSelectedModel('');
-      // Laad ook modellen voor de dropdown
       loadModels(suggestion.merk).then(setModels);
     } else {
       setSearchQuery(`${suggestion.merk} ${suggestion.model}`);
@@ -253,9 +244,19 @@ export function Hero() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 lg:py-16">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 leading-tight tracking-tight text-gray-900">
-            Slimmer leasen <span className="text-smartlease-teal">begint hier</span>
+
+          {/* Titel uit site_settings */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900">
+            {heroTitle}
           </h1>
+
+          {/* Subtitel uit site_settings */}
+          {heroSubtitle && (
+            <p className="text-base md:text-lg text-gray-500 mb-4 max-w-2xl mx-auto">
+              {heroSubtitle}
+            </p>
+          )}
+
           <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
             Zoek in onze{' '}
             <span className="text-smartlease-teal font-bold tabular-nums">
@@ -267,9 +268,9 @@ export function Hero() {
             {' '}auto's
           </p>
 
+          {/* Search form */}
           <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl border border-gray-100">
 
-            {/* Zoekbalk met suggesties */}
             <div className="relative mb-3" ref={searchRef}>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
               <input
@@ -282,21 +283,17 @@ export function Hero() {
                 className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all"
               />
               {searchQuery && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
+                <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   <X className="h-4 w-4" />
                 </button>
               )}
 
-              {/* Suggesties dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden text-left">
                   {suggestions.map((s, i) => (
                     <button
                       key={i}
-                      onMouseDown={(e) => e.preventDefault()} // voorkom blur voor click
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleSuggestionClick(s)}
                       className={`w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors border-b border-gray-50 last:border-0 ${
                         i === activeSuggestion ? 'bg-teal-50' : 'hover:bg-gray-50'
@@ -317,7 +314,6 @@ export function Hero() {
               )}
             </div>
 
-            {/* Filters + zoekknop */}
             <div className="flex flex-col md:flex-row items-stretch gap-3">
               <select
                 value={selectedMerk}
