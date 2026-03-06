@@ -415,35 +415,35 @@ export function BelMijPage() {
                 </div>
               )}
 
-              {/* Lease berekening */}
+              {/* Lease berekening — zelfde stijl als OffertePage */}
               {calculator && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <Calculator className="h-4 w-4 text-smartlease-teal" />
-                      <h3 className="font-bold text-gray-900 text-sm">Lease berekening</h3>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-center mb-3">
-                      <p className="text-xs text-gray-400">Maandtermijn</p>
-                      <p className="text-2xl font-bold text-smartlease-teal">€ {calculator.maandbedrag} p/m</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="bg-gray-50 rounded-lg px-2 py-2 text-center">
-                        <span className="text-gray-400 block">Looptijd</span>
-                        <p className="font-semibold text-gray-900">{calculator.looptijd} mnd</p>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                  <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-3">
+                    <Calculator className="h-4 w-4 text-smartlease-teal" /> Jouw berekening
+                  </h3>
+                  <div className="space-y-2">
+                    {vehicle?.verkoopprijs && vehicle.verkoopprijs > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Aankoopprijs</span>
+                        <span className="font-semibold text-gray-900">{fmt(vehicle.verkoopprijs)}</span>
                       </div>
-                      <div className="bg-gray-50 rounded-lg px-2 py-2 text-center">
-                        <span className="text-gray-400 block">Aanbet.</span>
-                        <p className="font-semibold text-gray-900">{fmt(calculator.aanbetaling)}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg px-2 py-2 text-center">
-                        <span className="text-gray-400 block">Slot</span>
-                        <p className="font-semibold text-gray-900">{fmt(calculator.slottermijn)}</p>
-                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Looptijd</span>
+                      <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center mt-2">Indicatieve berekening</p>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Aanbetaling</span>
+                      <span className="font-semibold text-gray-900">{fmt(calculator.aanbetaling)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Slottermijn</span>
+                      <span className="font-semibold text-gray-900">{fmt(calculator.slottermijn)}</span>
+                    </div>
+                    <div className="border-t border-gray-100 pt-2 flex justify-between">
+                      <span className="text-gray-900 font-semibold">Maandbedrag</span>
+                      <span className="text-lg font-bold text-smartlease-teal">{fmt(calculator.maandbedrag)}/mnd</span>
+                    </div>
                   </div>
                 </div>
               )}
