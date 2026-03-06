@@ -1,6 +1,6 @@
 // src/utils/imageProxy.ts
 // Proxiet afbeeldingen via Contabo server (vast IP, gewhitelisted bij nederlandmobiel.nl)
-const CONTABO_IMG_PROXY = 'https://smartlease.nl/img-proxy.php';
+const CONTABO_IMG_PROXY = 'http://185.205.246.13/img-proxy.php';
 
 /**
  * Genereert een proxy URL op basis van external_id via Contabo PHP proxy
