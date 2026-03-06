@@ -8,7 +8,6 @@ interface VehicleCardProps {
   onClick: () => void;
 }
 
-// Bereken maandprijs met standaard instellingen (72 mnd, 15% aanbetaling, 15% slottermijn, 8.99% rente)
 function berekenMaandprijs(verkoopprijs: number): number {
   if (!verkoopprijs || verkoopprijs <= 0) return 0;
   const r = 8.99 / 100 / 12;
@@ -20,7 +19,6 @@ function berekenMaandprijs(verkoopprijs: number): number {
   return Math.round(pmt);
 }
 
-// Placeholder afbeelding dimensies van nederlandmobiel.nl (geen foto beschikbaar)
 const PLACEHOLDER_W = 946;
 const PLACEHOLDER_H = 473;
 
@@ -44,9 +42,8 @@ function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
   const [imgError, setImgError] = useState(false);
 
-  // Primair: proxied thumbnail. Fallback: small_picture rechtstreeks.
   const proxyUrl = vehicle.external_id ? proxyThumb(vehicle.external_id) : null;
-  const fallbackUrl = null; // Geen directe fallback, alleen proxy
+  const fallbackUrl = null;
 
   const [imageUrl, setImageUrl] = useState<string | null>(proxyUrl || fallbackUrl);
 
@@ -61,7 +58,6 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
       const img = new Image();
       img.onload = () => {
         if (isPlaceholderImg(img)) {
-          // Proxy geeft "geen foto" placeholder terug
           if (nextUrl) {
             tryUrl(nextUrl, null);
           } else {
@@ -81,10 +77,9 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
       img.src = url;
     }
 
-    // Probeer proxyUrl eerst, daarna fallbackUrl
     const second = proxyUrl && fallbackUrl && fallbackUrl !== proxyUrl ? fallbackUrl : null;
     tryUrl(firstUrl, second);
-  }, [vehicle.external_id, vehicle.small_picture]);
+  }, [vehicle.external_id]);
 
   const formatPrice = (price: number) => {
     if (price === 0) return 'Prijs op aanvraag';
@@ -106,8 +101,8 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
       onClick={onClick}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-gray-200/60 cursor-pointer group border border-gray-100 hover:border-teal-200 transition-all duration-500 ease-out"
     >
-      {/* Image — 16:9 verhouding voor nette weergave op alle kaartjes */}
-      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
+      {/* Image */}
+      <div className="relative overflow-hidden bg-white" style={{ aspectRatio: '4/3' }}>
         {showPlaceholder ? (
           <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
         ) : (
@@ -115,10 +110,9 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
             <img
               src={imageUrl!}
               alt={`${vehicle.merk} ${vehicle.model}`}
-              className="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+              className="w-full h-full object-contain object-center transition-transform duration-700 ease-out"
               loading="lazy"
               onError={() => {
-                // Probeer bij runtime error nog de fallback
                 if (imageUrl !== fallbackUrl && fallbackUrl) {
                   setImageUrl(fallbackUrl);
                 } else {
@@ -136,7 +130,6 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
                 }
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           </>
         )}
 
@@ -157,7 +150,6 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
       {/* Content */}
       <div className="p-4 md:p-5">
-        {/* Titel */}
         <div className="mb-3">
           <h3 className="text-base font-bold text-gray-900 mb-0.5 group-hover:text-smartlease-blue transition-colors duration-300">
             {vehicle.merk} {vehicle.model}
@@ -165,7 +157,6 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           <p className="text-gray-400 text-sm truncate">{vehicle.uitvoering}</p>
         </div>
 
-        {/* Prijs */}
         <div className="mb-4">
           {maandprijs > 0 ? (
             <>
@@ -186,7 +177,6 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           )}
         </div>
 
-        {/* Spec pills */}
         <div className="grid grid-cols-2 gap-2">
           <div className="flex items-center gap-2 px-2.5 py-2 bg-gray-50 rounded-xl">
             <Gauge className="h-3.5 w-3.5 text-smartlease-teal flex-shrink-0" />
