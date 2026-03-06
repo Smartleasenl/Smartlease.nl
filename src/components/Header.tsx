@@ -54,9 +54,28 @@ export function Header() {
     return SLUG_OVERRIDES[slug] ?? `/${slug}`;
   }
 
+  // ── Body scroll lock (inclusief iOS Safari fix) ──
   useEffect(() => {
-    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (mobileMenuOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
   }, [mobileMenuOpen]);
 
   useEffect(() => {
@@ -259,7 +278,8 @@ if (item.dropdownKey === 'aanbod') {
       {/* Mobile fullscreen menu */}
       <div className={`md:hidden fixed inset-0 z-40 transition-all duration-300 ${mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-        <div className={`absolute inset-x-0 top-[calc(4rem+2rem)] bottom-0 bg-white overflow-y-auto transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-y-0' : '-translate-y-8'}`}>
+        {/* overscroll-contain voorkomt dat scrollen in het menu de pagina erachter scrolt */}
+        <div className={`absolute inset-x-0 top-[calc(4rem+2rem)] bottom-0 bg-white overflow-y-auto overscroll-contain transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-y-0' : '-translate-y-8'}`}>
           <nav className="px-4 pt-6 pb-4">
             {NAV_ITEMS.map((item, idx) => {
               const Icon       = item.icon;
