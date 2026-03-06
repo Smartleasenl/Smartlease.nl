@@ -163,12 +163,16 @@ export function LeaseCalculator({ vehiclePrice, onChange }: LeaseCalculatorProps
           </div>
         </div>
 
-        {/* Jouw berekening samenvatting */}
+        {/* Jouw berekening samenvatting — logische volgorde: prijs → aanbetaling → financiering → looptijd → slottermijn */}
         <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 space-y-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Jouw berekening</p>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Aankoopprijs</span>
             <span className="font-semibold text-gray-900">{formatPrice(vehiclePrice)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Aanbetaling</span>
+            <span className="font-semibold text-gray-900">{formatPrice(downPayment)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Financieringsbedrag</span>
@@ -177,10 +181,6 @@ export function LeaseCalculator({ vehiclePrice, onChange }: LeaseCalculatorProps
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Looptijd</span>
             <span className="font-semibold text-gray-900">{duration} maanden</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Aanbetaling</span>
-            <span className="font-semibold text-gray-900">{formatPrice(downPayment)}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Slottermijn</span>
