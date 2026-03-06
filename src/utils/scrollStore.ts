@@ -1,6 +1,4 @@
 // src/utils/scrollStore.ts
-// Puur utility bestand (geen React) — voorkomt Vite Fast Refresh conflict
-
 const scrollPositions = new Map<string, number>();
 
 export function saveScrollPosition(key: string, y: number) {
