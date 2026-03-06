@@ -56,12 +56,11 @@ export function Header() {
   }
 
   // ── Body scroll lock (inclusief iOS Safari fix) ──
-  // BELANGRIJK: sla scroll positie op VÓÓR position:fixed wordt gezet,
-  // want daarna is window.scrollY altijd 0 → ScrollToTop zou 0 opslaan.
+  // Sla scroll positie op VÓÓR position:fixed wordt gezet —
+  // daarna is window.scrollY altijd 0.
   useEffect(() => {
     if (mobileMenuOpen) {
       const scrollY = window.scrollY;
-      // Sla de echte positie op vóórdat body-lock window.scrollY reset naar 0
       saveScrollPosition(location.pathname + location.search, scrollY);
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
@@ -103,7 +102,6 @@ export function Header() {
     navigate(to);
   }
 
-  // h-16 = 64px = hoogte van de mobile header
   const HEADER_HEIGHT = 64;
 
   return (
@@ -139,7 +137,6 @@ export function Header() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center justify-between h-16 md:h-20">
 
-            {/* Hamburger — z-[60] zodat hij boven het menu overlay (z-[55]) uitkomt */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="md:hidden relative z-[60] p-2 -ml-2 text-gray-700 hover:text-smartlease-teal transition"
@@ -148,12 +145,10 @@ export function Header() {
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
 
-            {/* Logo — gecentreerd op mobiel, z-[60] */}
             <Link to="/" className="absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0 flex items-center z-[60]">
               <img src="/smart-lease-logo.gif" alt="Smartlease.nl" className="h-8 md:h-12 w-auto" />
             </Link>
 
-            {/* Mobile: telefoon + WhatsApp iconen rechts — z-[60] */}
             <div className="flex md:hidden items-center space-x-3 z-[60]">
               <a href="tel:0858008600" className="p-2 text-gray-700 hover:text-smartlease-teal transition">
                 <Phone className="h-5 w-5" />
@@ -169,7 +164,6 @@ export function Header() {
               {NAV_ITEMS.map((item) => {
                 const isOpen = openDropdown === item.dropdownKey;
 
-                // ── AANBOD dropdown (statisch) ──
                 if (item.dropdownKey === 'aanbod') {
                   const isActive = location.pathname === '/aanbod';
                   return (
@@ -222,7 +216,6 @@ export function Header() {
                   );
                 }
 
-                // ── Financial Lease / Meer informatie dropdowns (dynamisch) ──
                 if (item.hasDropdown && item.parentSlug) {
                   const isActive = location.pathname.startsWith(item.to);
                   const subPages = subPageMap[item.parentSlug] || [];
@@ -263,7 +256,6 @@ export function Header() {
                   );
                 }
 
-                // ── Gewone link ──
                 const isActive = location.pathname === item.to;
                 return (
                   <Link key={item.to} to={item.to}
@@ -278,7 +270,7 @@ export function Header() {
         </div>
       </header>
 
-      {/* USP bar (niet sticky, scrollt mee) */}
+      {/* USP bar */}
       <div className="bg-smartlease-blue">
         <div className="hidden md:flex items-center justify-center space-x-8 py-2">
           {USP_ITEMS.map((usp, i) => (
@@ -305,13 +297,10 @@ export function Header() {
         }`}
         style={{ top: `${HEADER_HEIGHT}px` }}
       >
-        {/* Backdrop tap-to-close */}
         <div
           className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
-
-        {/* Sliding panel */}
         <div
           className={`absolute inset-x-0 bottom-0 bg-white overflow-y-auto overscroll-contain transition-transform duration-300 ease-out ${
             mobileMenuOpen ? 'translate-y-0' : '-translate-y-4'
@@ -323,7 +312,6 @@ export function Header() {
               const Icon       = item.icon;
               const isExpanded = mobileExpanded === item.to;
 
-              // ── Mobile Aanbod ──
               if (item.dropdownKey === 'aanbod') {
                 const isActive = location.pathname === '/aanbod';
                 return (
@@ -369,7 +357,6 @@ export function Header() {
                 );
               }
 
-              // ── Mobile Financial Lease / Meer informatie ──
               if (item.hasDropdown && item.parentSlug) {
                 const isActive = location.pathname.startsWith(item.to);
                 const subPages = subPageMap[item.parentSlug] || [];
@@ -415,7 +402,6 @@ export function Header() {
                 );
               }
 
-              // ── Mobile gewone link ──
               const isActive = location.pathname === item.to;
               return (
                 <Link key={item.to} to={item.to} onClick={() => setMobileMenuOpen(false)}
