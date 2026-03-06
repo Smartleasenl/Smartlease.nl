@@ -249,9 +249,37 @@ export function VehicleDetailPage() {
     isSwiping.current = false;
   }, [nextImage, prevImage]);
 
+  // ─── WhatsApp handler met volledige auto-info + directe link ───────────────
   const handleWhatsApp = () => {
     if (!vehicle) return;
-    const message = `Hallo, ik heb interesse in ${vehicle.merk} ${vehicle.model} ${vehicle.bouwjaar}`;
+
+    const maandbedrag = calculatorState
+      ? calculatorState.maandbedrag
+      : berekenMaandprijs(vehicle.verkoopprijs);
+
+    const autoUrl = `${window.location.origin}/aanbod/${vehicle.id}`;
+
+    const lines = [
+      `Hallo, ik heb interesse in de volgende auto:`,
+      ``,
+      `🚗 ${vehicle.merk} ${vehicle.model} ${vehicle.uitvoering}`,
+      `📅 Bouwjaar: ${vehicle.bouwjaar_year}`,
+      `📍 Kilometerstand: ${formatKm(vehicle.kmstand)}`,
+      `⛽ Brandstof: ${vehicle.brandstof}`,
+      `💰 Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
+      ...(maandbedrag > 0 ? [`📆 Maandbedrag: €${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
+      ...(calculatorState ? [
+        `   └ Looptijd: ${calculatorState.looptijd} maanden`,
+        `   └ Aanbetaling: ${formatPrice(calculatorState.aanbetaling)}`,
+        `   └ Slottermijn: ${formatPrice(calculatorState.slottermijn)}`,
+      ] : []),
+      ``,
+      `🔗 ${autoUrl}`,
+      ``,
+      `Kunnen jullie mij meer informatie geven?`,
+    ];
+
+    const message = lines.join('\n');
     window.open(`https://wa.me/31613669328?text=${encodeURIComponent(message)}`, '_blank');
   };
 
