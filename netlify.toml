@@ -1,15 +1,18 @@
 [[redirects]]
-  from = "/cars-data.xml"
-  to = "/.netlify/functions/cars-data"
-  status = 200
+from = "/cars-data.xml"
+to = "/.netlify/functions/cars-data"
+status = 200
 
 [[redirects]]
-  from = "/share"
-  to = "/.netlify/functions/share"
-  status = 200
+from = "/share"
+to = "/.netlify/functions/share"
+status = 200
 
-# SPA fallback - alle routes naar index.html
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+from = "/*"
+to = "/index.html"
+status = 200
+
+[build]
+command = "npx vite build"
+publish = "dist"
