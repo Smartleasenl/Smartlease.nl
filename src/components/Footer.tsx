@@ -51,14 +51,14 @@ export function Footer() {
   const flLinks       = allLinks.filter(l => l.column_key === 'financial_lease');
   const meerInfoLinks = allLinks.filter(l => l.column_key === 'meer_informatie');
 
-  const phone       = s['contact_phone']         || '085 - 80 08 600';
-  const phoneRaw    = s['contact_phone_raw']      || '0858008600';
-  const whatsapp    = s['contact_whatsapp']       || '31613669328';
-  const email       = s['contact_email']          || 'info@smartlease.nl';
-  const hours       = s['footer_openingstijden']  || 'Ma-Vr 9:00 – 18:00 | Za 10:00 – 14:00';
-  const tagline     = s['footer_tagline']         || '';
-  const copyright   = s['footer_copyright']       || `© ${new Date().getFullYear()} Smartlease.nl`;
-  const reviewScore = s['review_score']           || '4,9';
+  const phone       = s['contact_phone']        || '085 - 80 08 600';
+  const phoneRaw    = s['contact_phone_raw']     || '0858008600';
+  const whatsapp    = s['contact_whatsapp']      || '31613669328';
+  const email       = s['contact_email']         || 'info@smartlease.nl';
+  const hours       = s['footer_openingstijden'] || 'Ma-Vr 9:00 – 18:00 | Za 10:00 – 14:00';
+  const tagline     = s['footer_tagline']        || '';
+  const copyright   = s['footer_copyright']      || `© ${new Date().getFullYear()} Smartlease.nl`;
+  const reviewScore = s['review_score']          || '4,9';
 
   const col1Title = s['footer_col1_title'] || 'Ons aanbod';
   const col2Title = s['footer_col2_title'] || 'Financial Lease';
@@ -75,9 +75,6 @@ export function Footer() {
               src="/smart-lease-white-logo.png"
               alt="Smartlease.nl"
               className="h-12 w-auto mb-5"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
             />
 
             {tagline && (
