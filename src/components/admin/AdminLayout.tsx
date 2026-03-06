@@ -4,7 +4,7 @@ import { supabase } from '../../lib/supabase';
 import {
   Settings, LayoutDashboard, Users, FileText, BarChart3,
   Building2, LogOut, Menu, X, ChevronRight, Globe,
-  Layout, PanelBottom, Star, HelpCircle, BookOpen,
+  Layout, PanelBottom, Star, HelpCircle, BookOpen, Link2,  // ← Link2 toegevoegd
 } from 'lucide-react';
 
 const SIDEBAR_ITEMS = [
