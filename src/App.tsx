@@ -27,6 +27,7 @@ import { PaginasPage, StatistiekenPage } from './pages/admin/PlaceholderPages';
 import DealersPage from './pages/admin/DealersPage';
 import PaginaBeheer from './pages/admin/PaginaBeheer';
 import FooterBeheer from './pages/admin/FooterBeheer';
+import FooterLinksAdmin from './pages/admin/FooterLinksAdmin';
 import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
 import BlogBeheer from './pages/admin/BlogBeheer';
@@ -67,6 +68,7 @@ function App() {
           <Route path="paginas" element={<PaginasPage />} />
           <Route path="pagina-beheer" element={<PaginaBeheer />} />
           <Route path="footer-beheer" element={<FooterBeheer />} />
+          <Route path="footer-links" element={<FooterLinksAdmin />} />
           <Route path="reviews" element={<ReviewsBeheer />} />
           <Route path="faq-beheer" element={<FaqBeheer />} />
           <Route path="blog-beheer" element={<BlogBeheer />} />
