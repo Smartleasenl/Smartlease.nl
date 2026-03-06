@@ -269,16 +269,20 @@ export function Hero() {
         <div className="max-w-4xl mx-auto text-center">
 
           {/* Titel uit site_settings */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900">
-            {heroTitle}
-          </h1>
-
-          {/* Subtitel uit site_settings */}
-          {heroSubtitle && (
-            <p className="text-base md:text-lg text-gray-500 mb-4 max-w-2xl mx-auto">
-              {heroSubtitle}
-            </p>
-          )}
+<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900">
+  {(() => {
+    const words = heroTitle.split(' ');
+    const tealCount = 2;
+    const darkWords = words.slice(0, words.length - tealCount).join(' ');
+    const tealWords = words.slice(words.length - tealCount).join(' ');
+    return (
+      <>
+        {darkWords}{' '}
+        <span className="text-smartlease-teal">{tealWords}</span>
+      </>
+    );
+  })()}
+</h1>
 
           <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
             Zoek in onze{' '}
