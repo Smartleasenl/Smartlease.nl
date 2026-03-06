@@ -87,8 +87,7 @@ export function Hero() {
   const modelCache = useRef<Record<string, ModelOption[]>>({});
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const heroTitle    = siteSettings['hero_title']    || 'Slimmer leasen begint hier';
-  const heroSubtitle = siteSettings['hero_subtitle'] || '';
+  const heroTitle = siteSettings['hero_title'] || 'Slimmer leasen begint hier';
 
   useEffect(() => {
     vehicleApi.getFilters().then(setFilters);
@@ -112,6 +111,7 @@ export function Hero() {
     return result;
   };
 
+  // Suggesties alleen op basis van searchQuery — ONAFHANKELIJK van dropdowns
   useEffect(() => {
     const q = searchQuery.trim();
     if (!q || !filters) {
@@ -185,7 +185,7 @@ export function Hero() {
             type: 'merk',
             merk,
             label: merk,
-            sublabel: 'Alle modellen',
+            sublabel: 'Alle merken',
           });
         });
       }
@@ -198,34 +198,38 @@ export function Hero() {
     buildSuggestions();
   }, [searchQuery, filters]);
 
+  // Suggestie klik: vult zoekbalk in maar raakt dropdowns NIET aan
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setShowSuggestions(false);
+    setSearchQuery(suggestion.label);
     if (suggestion.type === 'merk') {
-      setSearchQuery(suggestion.merk);
-      setSelectedMerk(suggestion.merk);
-      setSelectedModel('');
-      loadModels(suggestion.merk).then(setModels);
+      // Navigeer direct bij merk-selectie vanuit zoekbalk
+      navigate(`/aanbod?merk=${encodeURIComponent(suggestion.merk)}`);
     } else {
-      setSearchQuery(`${suggestion.merk} ${suggestion.model}`);
-      setSelectedMerk(suggestion.merk);
-      setSelectedModel(suggestion.model || '');
-      loadModels(suggestion.merk).then(setModels);
+      navigate(
+        `/aanbod?merk=${encodeURIComponent(suggestion.merk)}&model=${encodeURIComponent(suggestion.model || '')}`
+      );
     }
   };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+
+    // Dropdown heeft prioriteit; anders zoekbalk
     if (selectedMerk) {
       params.append('merk', selectedMerk);
     } else if (searchQuery.trim()) {
       params.append('q', searchQuery.trim());
     }
+
     if (selectedModel) params.append('model', selectedModel);
+
     if (selectedBudget) {
       const [min, max] = selectedBudget.split('-');
       if (min) params.append('budget_min', min);
       if (max) params.append('budget_max', max);
     }
+
     navigate(`/aanbod?${params.toString()}`);
   };
 
@@ -250,11 +254,21 @@ export function Hero() {
 
   const clearSearch = () => {
     setSearchQuery('');
-    setSelectedMerk('');
-    setSelectedModel('');
-    setModels([]);
     setSuggestions([]);
     setShowSuggestions(false);
+    // Zoekbalk clearen reset NIET de dropdowns
+  };
+
+  // Merk dropdown: onafhankelijk van zoekbalk
+  const handleMerkChange = (merk: string) => {
+    setSelectedMerk(merk);
+    setSelectedModel('');
+    if (merk) {
+      loadModels(merk).then(setModels);
+    } else {
+      setModels([]);
+    }
+    // searchQuery wordt hier NIET aangeraakt
   };
 
   const handleBrandClick = (brand: string) => {
@@ -268,21 +282,21 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 lg:py-16">
         <div className="max-w-4xl mx-auto text-center">
 
-          {/* Titel uit site_settings */}
-<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900">
-  {(() => {
-    const words = heroTitle.split(' ');
-    const tealCount = 2;
-    const darkWords = words.slice(0, words.length - tealCount).join(' ');
-    const tealWords = words.slice(words.length - tealCount).join(' ');
-    return (
-      <>
-        {darkWords}{' '}
-        <span className="text-smartlease-teal">{tealWords}</span>
-      </>
-    );
-  })()}
-</h1>
+          {/* Titel */}
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900">
+            {(() => {
+              const words = heroTitle.split(' ');
+              const tealCount = 2;
+              const darkWords = words.slice(0, words.length - tealCount).join(' ');
+              const tealWords = words.slice(words.length - tealCount).join(' ');
+              return (
+                <>
+                  {darkWords}{' '}
+                  <span className="text-smartlease-teal">{tealWords}</span>
+                </>
+              );
+            })()}
+          </h1>
 
           <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
             Zoek in onze{' '}
@@ -299,7 +313,7 @@ export function Hero() {
           {/* Search form */}
           <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl border border-gray-100">
 
-            {/* Zoekbalk met suggesties */}
+            {/* Zoekbalk — volledig onafhankelijk van dropdowns */}
             <div className="relative mb-3" ref={searchRef}>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
               <input
@@ -353,18 +367,11 @@ export function Hero() {
               )}
             </div>
 
-            {/* Filters + zoekknop */}
+            {/* Dropdowns + zoekknop — onafhankelijk van zoekbalk */}
             <div className="flex flex-col md:flex-row items-stretch gap-3">
               <select
                 value={selectedMerk}
-                onChange={(e) => {
-                  const merk = e.target.value;
-                  setSelectedMerk(merk);
-                  setSearchQuery(merk);
-                  setSelectedModel('');
-                  if (merk) loadModels(merk).then(setModels);
-                  else setModels([]);
-                }}
+                onChange={(e) => handleMerkChange(e.target.value)}
                 className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-white font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all appearance-none cursor-pointer hover:border-gray-400"
               >
                 <option value="">Alle merken</option>
@@ -414,7 +421,7 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Popular brands */}
+          {/* Populaire merken */}
           <div className="mt-8">
             <p className="text-sm text-gray-400 mb-4 font-medium uppercase tracking-wider">
               Populaire merken
