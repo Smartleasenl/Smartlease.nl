@@ -1,59 +1,42 @@
 // src/utils/imageProxy.ts
-// Proxiet afbeeldingen via Netlify serverless function (roept VPS aan met gewhitelisted IP)
+const SUPABASE_IMG_PROXY = 'https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-image';
+const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamJnaHFyZGx6d3hnZnV1eHNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMTUzNDksImV4cCI6MjA4NzY5MTM0OX0.TboqxP8kTiJgouaO5zZJdvbki07HK6M0FPj6uo5uG-M';
 
-const NETLIFY_IMG_PROXY = '/.netlify/functions/img-proxy';
+function buildUrl(id: string | number, s: number, n: number): string {
+  return `${SUPABASE_IMG_PROXY}?id=${id}&s=${s}&n=${n}&apikey=${ANON_KEY}`;
+}
 
-/**
- * Genereert een proxy URL op basis van external_id
- * Gebruikt door VehicleCard als primaire afbeelding
- */
 export function proxyThumb(externalId: string | number, size: number = 320, n: number = 1): string {
   if (!externalId) return '';
-  return `${NETLIFY_IMG_PROXY}?id=${externalId}&s=${size}&n=${n}`;
+  return buildUrl(externalId, size, n);
 }
 
-/**
- * Genereert een grote proxy URL op basis van external_id
- * Gebruikt door VehicleDetailPage voor de grote afbeeldingen
- */
 export function proxyLargeImage(externalId: string | number, n: number = 1): string {
   if (!externalId) return '';
-  return `${NETLIFY_IMG_PROXY}?id=${externalId}&s=640&n=${n}`;
+  return buildUrl(externalId, 640, n);
 }
 
-/**
- * Converteert een nederlandmobiel.nl afbeelding URL naar een proxy URL
- */
 export function getProxiedImageUrl(originalUrl: string | null | undefined): string {
   if (!originalUrl) return '';
-  if (originalUrl.includes('img-proxy') || originalUrl.includes('img.php')) return originalUrl;
+  if (originalUrl.includes('og-image') || originalUrl.includes('img.php')) return originalUrl;
   const match = originalUrl.match(/nederlandmobiel\.nl\/auto\/(\d+)\/(\d+)\/(\d+)/);
   if (match) {
     const [, id, size, number] = match;
-    return `${NETLIFY_IMG_PROXY}?id=${id}&s=${size}&n=${number}`;
+    return buildUrl(id, Number(size), Number(number));
   }
   return originalUrl;
 }
 
-/**
- * Geeft proxy URL terug met optionele size aanpassing
- */
-export function getVehicleImageUrl(
-  smallPicture: string | null | undefined,
-  size: number = 320
-): string {
+export function getVehicleImageUrl(smallPicture: string | null | undefined, size: number = 320): string {
   if (!smallPicture) return '';
   const proxied = getProxiedImageUrl(smallPicture);
-  if (size !== 320 && proxied.includes('img-proxy')) {
+  if (size !== 320 && proxied.includes('og-image')) {
     return proxied.replace(/s=\d+/, `s=${size}`);
   }
   return proxied;
 }
 
-/**
- * OG image URL voor social sharing (1280px via VPS proxy)
- */
 export function getOgImageUrl(externalId: string | number): string {
   if (!externalId) return 'https://smartlease.nl/smart-lease-logo.gif';
-  return `https://smartlease.nl/public/img.php?id=${externalId}&s=1280&n=1`;
+  return buildUrl(externalId, 1280, 1);
 }
