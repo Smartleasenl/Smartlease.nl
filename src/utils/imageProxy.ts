@@ -36,6 +36,15 @@ export function getProxiedImageUrl(originalUrl: string | null | undefined): stri
 }
 
 /**
+ * Genereert een grote proxy URL op basis van external_id
+ * Gebruikt door VehicleDetailPage voor de grote afbeeldingen (640px)
+ */
+export function proxyLargeImage(externalId: string | number, n: number = 1): string {
+  if (!externalId) return '';
+  return `/img-proxy?id=${externalId}&s=640&n=${n}`;
+}
+
+/**
  * Geeft een fallback afbeelding URL terug als de originele niet beschikbaar is
  */
 export function getVehicleImageUrl(
