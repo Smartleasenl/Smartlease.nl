@@ -27,10 +27,9 @@ import { vehicleApi } from '../services/api';
 
 // ─── Image helper ────────────────────────────────────────────────────────────
 
-const PROXY = 'https://smartlease.nl/img.php';
 function getImg(v: any): string {
-  if (v.external_id) return `${PROXY}?id=${v.external_id}&s=640&n=1`;
-  if (v.small_picture) return `${PROXY}?url=${encodeURIComponent(v.small_picture)}`;
+  if (v.external_id) return `/img-proxy?id=${v.external_id}&s=640&n=1`;
+  if (v.small_picture) return `/img-proxy?url=${encodeURIComponent(v.small_picture)}`;
   return '';
 }
 function makeSlug(v: any): string {
@@ -118,8 +117,6 @@ const BRANDS = [
 // ─── Scoring ─────────────────────────────────────────────────────────────────
 
 function checkMustHave(_vehicle: any, _featureId: string): boolean {
-  // API filtert al op opties via search_vehicles_with_opties RPC
-  // Als de auto in de resultaten zit, heeft die de must-have optie
   return true;
 }
 
@@ -129,7 +126,6 @@ function scoreVehicle(v: any, p: Prefs): ScoredVehicle {
   const mp = v.maandprijs || 0;
   const bj = v.bouwjaar_year || 0;
 
-  // Budget (30)
   if (p.budgetType === 'maand') {
     const ok = mp > 0 && mp <= p.budgetMax;
     criteria.push({ label: 'Budget', matched: ok, icon: Wallet, detail: ok ? `€${mp} p/m` : `€${mp} p/m` });
@@ -138,34 +134,28 @@ function scoreVehicle(v: any, p: Prefs): ScoredVehicle {
     criteria.push({ label: 'Budget', matched: ok, icon: Wallet, detail: ok ? 'Binnen budget' : 'Buiten budget' });
   }
 
-  // Brandstof (20)
   if (p.brandstof.length > 0) {
     const ok = p.brandstof.includes(v.brandstof);
     criteria.push({ label: 'Brandstof', matched: ok, icon: Fuel, detail: v.brandstof || '?' });
   }
 
-  // Transmissie (15)
   if (p.transmissie) {
     const ok = p.transmissie === v.transmissie;
     criteria.push({ label: 'Transmissie', matched: ok, icon: Gauge, detail: v.transmissie || '?' });
   }
 
-  // Merk (15)
   if (p.merken.length > 0) {
     const ok = p.merken.includes(v.merk);
     criteria.push({ label: 'Merk', matched: ok, icon: Tag, detail: v.merk || '?' });
   }
 
-  // Bouwjaar (10)
   criteria.push({ label: 'Bouwjaar', matched: bj >= p.bouwjaarMin, icon: Calendar, detail: `${bj}` });
 
-  // Type (10)
   if (p.carrosserie.length > 0) {
     const ok = p.carrosserie.includes(v.categorie);
     criteria.push({ label: 'Type', matched: ok, icon: LayoutGrid, detail: v.categorie || '?' });
   }
 
-  // Must-have features
   p.mustHave.forEach((fid) => {
     const feat = MUST_HAVE.find((m) => m.id === fid);
     if (!feat) return;
@@ -179,7 +169,6 @@ function scoreVehicle(v: any, p: Prefs): ScoredVehicle {
     });
   });
 
-  // Calculate score
   const weights: Record<string, number> = { Budget: 30, Brandstof: 20, Transmissie: 15, Merk: 15, Bouwjaar: 10, Type: 10 };
   let totalW = 0;
   let earned = 0;
@@ -262,12 +251,10 @@ export function KeuzehulpPage() {
   const canProceed = step === 0 ? prefs.vehicleType !== '' : true;
   const isResults = step >= TOTAL;
 
-  // ─── Stap 2 (carrosserie) overslaan voor bedrijfsauto ──────────────────────
   const isBedrijf = prefs.vehicleType === 'bedrijf';
 
   const goNext = () => {
     if (step < TOTAL - 1) {
-      // Sla stap 2 (type/carrosserie) over als bedrijfsauto gekozen
       const nextStep = step === 1 && isBedrijf ? 3 : step + 1;
       setStep(nextStep);
       scrollTop();
@@ -278,7 +265,6 @@ export function KeuzehulpPage() {
 
   const goPrev = () => {
     if (step > 0) {
-      // Sla stap 2 over bij teruggaan als bedrijfsauto gekozen
       const prevStep = step === 3 && isBedrijf ? 1 : step - 1;
       setStep(prevStep);
       scrollTop();
@@ -311,7 +297,6 @@ export function KeuzehulpPage() {
     try {
       const params: any = { per_page: 80, sort: 'nieuwste' };
 
-      // Vehicle type filter: bedrijfsauto zonder expliciete carrosserie keuze → forceer Bedrijfswagen
       if (isBedrijf && prefs.carrosserie.length === 0) {
         params.categorie = 'Bedrijfswagen';
       }
@@ -329,7 +314,6 @@ export function KeuzehulpPage() {
         if (prefs.budgetMin > 0) params.prijs_min = prefs.budgetMin;
       }
 
-      // Stuur must-have opties mee als API parameter
       if (prefs.mustHave.length > 0) {
         const optieValues = prefs.mustHave.map((fid) => {
           const f = MUST_HAVE.find((m) => m.id === fid);
@@ -446,7 +430,7 @@ export function KeuzehulpPage() {
     </div>
   );
 
-  // ─── Step 2: Carrosserie (alleen voor personenauto's) ─────────────────────
+  // ─── Step 2: Carrosserie ──────────────────────────────────────────────────
 
   const stepType = () => (
     <div>
@@ -643,7 +627,6 @@ export function KeuzehulpPage() {
                 )}
 
                 <div className="flex p-3 gap-3">
-                  {/* Image */}
                   <div className="w-28 sm:w-36 flex-shrink-0">
                     {img ? (
                       <img
@@ -660,7 +643,6 @@ export function KeuzehulpPage() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-tight truncate">
@@ -677,7 +659,6 @@ export function KeuzehulpPage() {
                   </div>
                 </div>
 
-                {/* Criteria badges */}
                 <div className="px-3 pb-2">
                   <div className="flex flex-wrap gap-1.5">
                     {match.criteria.map((c, i) => (
@@ -686,7 +667,6 @@ export function KeuzehulpPage() {
                   </div>
                 </div>
 
-                {/* CTA */}
                 <div className="px-3 pb-3">
                   <a
                     href={link}
@@ -703,7 +683,6 @@ export function KeuzehulpPage() {
         </div>
       )}
 
-      {/* Bottom actions */}
       <div className="flex gap-3 mt-6">
         <button
           onClick={goBack}
@@ -736,7 +715,6 @@ export function KeuzehulpPage() {
       <style>{`@keyframes kfSlide { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }`}</style>
 
       <div className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
-        {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center space-x-1.5 bg-smartlease-teal/10 text-smartlease-teal px-3 py-1.5 rounded-full mb-3">
             <Sparkles className="h-4 w-4" />
@@ -745,9 +723,7 @@ export function KeuzehulpPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Vind jouw perfecte auto</h1>
         </div>
 
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          {/* Progress bar + nav (wizard only) */}
           {!isResults && (
             <div className="px-5 pt-4">
               <div className="flex items-center justify-between mb-2.5">
@@ -770,15 +746,12 @@ export function KeuzehulpPage() {
             </div>
           )}
 
-          {/* Content */}
           <div className="p-5 sm:p-6">{renderContent()}</div>
 
-          {/* Footer buttons (wizard only) */}
           {!isResults && (
             <div className="px-5 pb-5 flex justify-between items-center">
               {step < TOTAL - 1 ? (
                 <button onClick={() => {
-                  // Overslaan houdt ook rekening met bedrijfsauto skip
                   const nextStep = step === 1 && isBedrijf ? 3 : step + 1;
                   setStep(nextStep);
                   scrollTop();
