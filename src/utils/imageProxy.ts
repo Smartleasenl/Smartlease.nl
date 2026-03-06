@@ -1,5 +1,14 @@
 // src/utils/imageProxy.ts
-// Converteert nederlandmobiel.nl afbeelding URLs naar proxy URLs
+
+/**
+ * Genereert een proxy URL op basis van external_id
+ * Gebruikt door VehicleCard als primaire afbeelding
+ * /img-proxy?id={external_id}&s=320&n=1
+ */
+export function proxyThumb(externalId: string | number, size: number = 320, n: number = 1): string {
+  if (!externalId) return '';
+  return `/img-proxy?id=${externalId}&s=${size}&n=${n}`;
+}
 
 /**
  * Converteert een nederlandmobiel.nl afbeelding URL naar een proxy URL
