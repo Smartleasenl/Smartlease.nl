@@ -52,6 +52,7 @@ export function Hero() {
   const [models, setModels] = useState<ModelOption[]>([]);
   const [selectedModel, setSelectedModel] = useState('');
   const [selectedBudget, setSelectedBudget] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [totalCount, setTotalCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export function Hero() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+    if (searchQuery.trim()) params.append('q', searchQuery.trim());
     if (selectedMerk) params.append('merk', selectedMerk);
     if (selectedModel) params.append('model', selectedModel);
     if (selectedBudget) {
@@ -78,6 +80,10 @@ export function Hero() {
       if (max) params.append('budget_max', max);
     }
     navigate(`/aanbod?${params.toString()}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
   };
 
   const handleBrandClick = (brand: string) => {
@@ -107,6 +113,21 @@ export function Hero() {
 
           {/* Search form */}
           <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl border border-gray-100">
+
+            {/* Tekstzoekbalk bovenaan — volle breedte */}
+            <div className="relative mb-3">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Zoek op merk, model, uitvoering..."
+                className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all"
+              />
+            </div>
+
+            {/* Filters + zoekknop */}
             <div className="flex flex-col md:flex-row items-stretch gap-3">
               <select
                 value={selectedMerk}
