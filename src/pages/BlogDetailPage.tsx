@@ -160,182 +160,211 @@ export default function BlogDetailPage() {
       </div>
 
       {/* ══ CONTENT LAYOUT ══ */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 48, paddingTop: 52, paddingBottom: 80 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 300px', gap: 56, alignItems: 'start' }}
-            className="blog-layout">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: 52, paddingBottom: 80 }}>
 
-            {/* ── ARTICLE ── */}
-            <article style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(24px)',
-              transition: 'all 0.8s cubic-bezier(0.4,0,0.2,1) 0.1s',
-            }}>
-              {/* Excerpt highlight */}
-              <p style={{
-                fontSize: '1.15rem', fontWeight: 500, color: '#374151',
-                lineHeight: 1.8, paddingBottom: 28, marginBottom: 32,
-                borderBottom: '1px solid #f1f5f9',
+        {/* ── ARTICLE (altijd bovenaan, ook op mobiel) ── */}
+        <article
+          className="blog-article"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+            transition: 'all 0.8s cubic-bezier(0.4,0,0.2,1) 0.1s',
+          }}
+        >
+          {/* Excerpt highlight */}
+          <p style={{
+            fontSize: '1.15rem', fontWeight: 500, color: '#374151',
+            lineHeight: 1.8, paddingBottom: 28, marginBottom: 32,
+            borderBottom: '1px solid #f1f5f9',
+          }}>
+            {post.excerpt}
+          </p>
+
+          {/* Main HTML content */}
+          <div className="blog-prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+
+          {/* Tags */}
+          <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ color: '#9CA3AF', fontSize: 12, fontWeight: 600 }}>Categorie:</span>
+              <span style={{
+                display: 'inline-block', padding: '4px 12px', borderRadius: 8,
+                background: cs.gradient, color: '#fff',
+                fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em',
               }}>
-                {post.excerpt}
+                {post.category}
+              </span>
+            </div>
+          </div>
+        </article>
+
+        {/* ── SIDEBAR (op desktop rechts naast artikel, op mobiel eronder) ── */}
+        <aside
+          className="blog-sidebar"
+          style={{
+            opacity: mounted ? 1 : 0,
+            transform: mounted ? 'translateY(0)' : 'translateY(24px)',
+            transition: 'all 0.8s cubic-bezier(0.4,0,0.2,1) 0.25s',
+          }}
+        >
+          {/* CTA Card */}
+          <div style={{
+            borderRadius: 20, overflow: 'hidden',
+            background: 'linear-gradient(145deg, #0a1628 0%, #0f2040 100%)',
+            marginBottom: 24,
+          }}>
+            {/* Color bar */}
+            <div style={{ height: 4, background: cs.gradient }} />
+            <div style={{ padding: '24px 24px 28px' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14,
+              }}>
+                <div style={{
+                  width: 8, height: 8, borderRadius: '50%',
+                  background: cs.color, boxShadow: `0 0 10px ${cs.glow}`,
+                  animation: 'pulse 2s ease-in-out infinite',
+                }} />
+                <span style={{ color: cs.color, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.18em' }}>
+                  Gratis advies
+                </span>
+              </div>
+              <h3 style={{ color: '#fff', fontWeight: 900, fontSize: 18, lineHeight: 1.3, marginBottom: 10 }}>
+                Interesse in financial lease?
+              </h3>
+              <p style={{ color: 'rgba(255,255,255,0.48)', fontSize: 13, lineHeight: 1.7, marginBottom: 22 }}>
+                Binnen 24 uur een persoonlijk voorstel op maat. Gratis en vrijblijvend.
               </p>
 
-              {/* Main HTML content */}
-              <div className="blog-prose" dangerouslySetInnerHTML={{ __html: post.content }} />
+              <Link to="/offerte" style={{
+                display: 'block', textAlign: 'center',
+                padding: '13px 20px', borderRadius: 12, marginBottom: 10,
+                background: cs.gradient, color: '#fff',
+                fontWeight: 900, fontSize: 14, textDecoration: 'none',
+                boxShadow: `0 8px 28px ${cs.glow}`,
+                transition: 'transform 0.2s ease',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'none')}
+              >
+                Gratis offerte →
+              </Link>
 
-              {/* Tags */}
-              <div style={{ marginTop: 48, paddingTop: 28, borderTop: '1px solid #f1f5f9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ color: '#9CA3AF', fontSize: 12, fontWeight: 600 }}>Categorie:</span>
-                  <span style={{
-                    display: 'inline-block', padding: '4px 12px', borderRadius: 8,
-                    background: cs.gradient, color: '#fff',
-                    fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em',
-                  }}>
-                    {post.category}
-                  </span>
-                </div>
-              </div>
-            </article>
-
-            {/* ── SIDEBAR ── */}
-            <aside style={{
-              position: 'sticky', top: 28,
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(24px)',
-              transition: 'all 0.8s cubic-bezier(0.4,0,0.2,1) 0.25s',
-            }}>
-              {/* CTA Card */}
-              <div style={{
-                borderRadius: 20, overflow: 'hidden',
-                background: 'linear-gradient(145deg, #0a1628 0%, #0f2040 100%)',
-                marginBottom: 24,
+              <a href="tel:0858008600" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '11px 20px', borderRadius: 12, marginBottom: 8,
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.75)', fontWeight: 700, fontSize: 13,
+                textDecoration: 'none',
               }}>
-                {/* Color bar */}
-                <div style={{ height: 4, background: cs.gradient }} />
-                <div style={{ padding: '24px 24px 28px' }}>
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14,
-                  }}>
-                    <div style={{
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: cs.color, boxShadow: `0 0 10px ${cs.glow}`,
-                      animation: 'pulse 2s ease-in-out infinite',
-                    }} />
-                    <span style={{ color: cs.color, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.18em' }}>
-                      Gratis advies
-                    </span>
-                  </div>
-                  <h3 style={{ color: '#fff', fontWeight: 900, fontSize: 18, lineHeight: 1.3, marginBottom: 10 }}>
-                    Interesse in financial lease?
-                  </h3>
-                  <p style={{ color: 'rgba(255,255,255,0.48)', fontSize: 13, lineHeight: 1.7, marginBottom: 22 }}>
-                    Binnen 24 uur een persoonlijk voorstel op maat. Gratis en vrijblijvend.
-                  </p>
+                <Phone style={{ width: 14, height: 14 }} />
+                085 – 80 08 600
+              </a>
 
-                  <Link to="/offerte" style={{
-                    display: 'block', textAlign: 'center',
-                    padding: '13px 20px', borderRadius: 12, marginBottom: 10,
-                    background: cs.gradient, color: '#fff',
-                    fontWeight: 900, fontSize: 14, textDecoration: 'none',
-                    boxShadow: `0 8px 28px ${cs.glow}`,
-                    transition: 'transform 0.2s ease',
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
-                    onMouseLeave={e => (e.currentTarget.style.transform = 'none')}
-                  >
-                    Gratis offerte →
-                  </Link>
-
-                  <a href="tel:0858008600" style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '11px 20px', borderRadius: 12, marginBottom: 8,
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'rgba(255,255,255,0.75)', fontWeight: 700, fontSize: 13,
-                    textDecoration: 'none',
-                  }}>
-                    <Phone style={{ width: 14, height: 14 }} />
-                    085 – 80 08 600
-                  </a>
-
-                  <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    padding: '11px 20px', borderRadius: 12,
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'rgba(255,255,255,0.75)', fontWeight: 700, fontSize: 13,
-                    textDecoration: 'none',
-                  }}>
-                    <MessageCircle style={{ width: 14, height: 14 }} />
-                    WhatsApp
-                  </a>
-                </div>
-              </div>
-
-              {/* Related posts */}
-              {related.length > 0 && (
-                <div style={{
-                  borderRadius: 20, border: '1px solid #f1f5f9',
-                  overflow: 'hidden', background: '#fafafa',
-                }}>
-                  <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #f1f5f9' }}>
-                    <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, color: '#1e293b', fontSize: 13 }}>
-                      <BookOpen style={{ width: 15, height: 15, color: '#94a3b8' }} />
-                      Meer lezen
-                    </h4>
-                  </div>
-                  <div>
-                    {related.map((r, i) => (
-                      <Link
-                        key={r.id}
-                        to={`/blog/${r.slug}`}
-                        style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 12,
-                          padding: '14px 20px',
-                          borderBottom: i < related.length - 1 ? '1px solid #f1f5f9' : 'none',
-                          textDecoration: 'none',
-                          transition: 'background 0.2s ease',
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        {r.image_url && (
-                          <img src={r.image_url} alt={r.title}
-                            style={{ width: 52, height: 44, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
-                        )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{
-                            color: '#1e293b', fontWeight: 700, fontSize: 13, lineHeight: 1.4,
-                            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                          }}>
-                            {r.title}
-                          </p>
-                          <span style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, display: 'block' }}>{r.read_time} min</span>
-                        </div>
-                        <ChevronRight style={{ width: 14, height: 14, color: '#cbd5e1', flexShrink: 0, marginTop: 2 }} />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </aside>
+              <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '11px 20px', borderRadius: 12,
+                background: 'rgba(255,255,255,0.07)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.75)', fontWeight: 700, fontSize: 13,
+                textDecoration: 'none',
+              }}>
+                <MessageCircle style={{ width: 14, height: 14 }} />
+                WhatsApp
+              </a>
+            </div>
           </div>
-        </div>
+
+          {/* Related posts */}
+          {related.length > 0 && (
+            <div style={{
+              borderRadius: 20, border: '1px solid #f1f5f9',
+              overflow: 'hidden', background: '#fafafa',
+            }}>
+              <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #f1f5f9' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, color: '#1e293b', fontSize: 13 }}>
+                  <BookOpen style={{ width: 15, height: 15, color: '#94a3b8' }} />
+                  Meer lezen
+                </h4>
+              </div>
+              <div>
+                {related.map((r, i) => (
+                  <Link
+                    key={r.id}
+                    to={`/blog/${r.slug}`}
+                    style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 12,
+                      padding: '14px 20px',
+                      borderBottom: i < related.length - 1 ? '1px solid #f1f5f9' : 'none',
+                      textDecoration: 'none',
+                      transition: 'background 0.2s ease',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f8fafc')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    {r.image_url && (
+                      <img src={r.image_url} alt={r.title}
+                        style={{ width: 52, height: 44, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{
+                        color: '#1e293b', fontWeight: 700, fontSize: 13, lineHeight: 1.4,
+                        display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                      }}>
+                        {r.title}
+                      </p>
+                      <span style={{ color: '#94a3b8', fontSize: 11, marginTop: 4, display: 'block' }}>{r.read_time} min</span>
+                    </div>
+                    <ChevronRight style={{ width: 14, height: 14, color: '#cbd5e1', flexShrink: 0, marginTop: 2 }} />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
       </div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(0.9)} }
 
-        .blog-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 300px;
-          gap: 56px;
+        /* ── Desktop: artikel links, sidebar rechts ── */
+        @media (min-width: 768px) {
+          .max-w-5xl > .blog-article,
+          .max-w-5xl > .blog-sidebar {
+            display: block;
+          }
+          /* Wrap article + sidebar in pseudo-grid via CSS Grid on parent */
         }
-        @media (max-width: 768px) {
-          .blog-layout {
+
+        /* Grid wrapper voor desktop */
+        .max-w-5xl.mx-auto.px-4 {
+          display: grid;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto;
+        }
+
+        @media (min-width: 768px) {
+          .max-w-5xl.mx-auto.px-4 {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 300px;
+            gap: 56px;
+            align-items: start;
+          }
+          .blog-sidebar {
+            position: sticky;
+            top: 28px;
+          }
+        }
+
+        /* ── Mobiel: artikel bovenaan, sidebar eronder als volle breedte ── */
+        @media (max-width: 767px) {
+          .max-w-5xl.mx-auto.px-4 {
             grid-template-columns: 1fr;
+            gap: 32px;
+          }
+          .blog-sidebar {
+            position: static !important;
           }
         }
 
