@@ -7,9 +7,9 @@ import {
   Settings,
   TrendingUp,
   ArrowRight,
-  Clock,
   CheckCircle2,
   AlertCircle,
+  Link2,
 } from 'lucide-react';
 
 interface Stats {
@@ -38,7 +38,6 @@ export default function AdminDashboard() {
 
   const loadStats = async () => {
     try {
-      // Voertuigen tellen
       const { count: totalVehicles } = await supabase
         .from('vehicles')
         .select('*', { count: 'exact', head: true });
@@ -48,7 +47,6 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      // Leads tellen
       const { count: totalLeads } = await supabase
         .from('leads')
         .select('*', { count: 'exact', head: true });
@@ -58,7 +56,6 @@ export default function AdminDashboard() {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'nieuw');
 
-      // Laatste import
       const { data: lastImport } = await supabase
         .from('import_logs')
         .select('finished_at, status')
@@ -118,6 +115,33 @@ export default function AdminDashboard() {
     },
   ];
 
+  const quickActions = [
+    {
+      to: '/admin/site-instellingen',
+      label: 'Site instellingen beheren',
+      desc: 'Logo, contact, SEO, teksten en meer',
+      icon: Settings,
+    },
+    {
+      to: '/admin/footer-links',
+      label: 'Footer links beheren',
+      desc: 'Beheer welke paginalinks in de footer staan',
+      icon: Link2,
+    },
+    {
+      to: '/admin/leads',
+      label: 'Leads bekijken',
+      desc: 'Bekijk en beheer binnenkomende leads',
+      icon: Users,
+    },
+    {
+      to: '/admin/statistieken',
+      label: 'Statistieken bekijken',
+      desc: 'Bezoekers, voertuigen en import logs',
+      icon: TrendingUp,
+    },
+  ];
+
   return (
     <div>
       {/* Page header */}
@@ -153,11 +177,7 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-gray-900">Snelle acties</h2>
         </div>
         <div className="divide-y divide-gray-50">
-          {[
-            { to: '/admin/site-instellingen', label: 'Site instellingen beheren', desc: 'Logo, contact, SEO, teksten en meer', icon: Settings },
-            { to: '/admin/leads', label: 'Leads bekijken', desc: 'Bekijk en beheer binnenkomende leads', icon: Users },
-            { to: '/admin/statistieken', label: 'Statistieken bekijken', desc: 'Bezoekers, voertuigen en import logs', icon: TrendingUp },
-          ].map((action) => {
+          {quickActions.map((action) => {
             const Icon = action.icon;
             return (
               <Link
