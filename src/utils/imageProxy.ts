@@ -1,4 +1,3 @@
-// src/utils/imageProxy.ts
 const SUPABASE_IMG_PROXY = 'https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-image';
 const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamJnaHFyZGx6d3hnZnV1eHNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMTUzNDksImV4cCI6MjA4NzY5MTM0OX0.TboqxP8kTiJgouaO5zZJdvbki07HK6M0FPj6uo5uG-M';
 
