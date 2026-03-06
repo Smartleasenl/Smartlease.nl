@@ -256,7 +256,8 @@ export function VehicleDetailPage() {
       ? calculatorState.maandbedrag
       : berekenMaandprijs(vehicle.verkoopprijs);
 
-    const autoUrl = `${window.location.origin}/aanbod/${vehicle.id}`;
+    // OG-preview URL zodat WhatsApp foto + titel toont als link preview
+    const autoUrl = `https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-vehicle?id=${vehicle.id}`;
 
     const lines = [
       `Hallo, ik heb interesse in de volgende auto:`,
