@@ -260,23 +260,23 @@ export function VehicleDetailPage() {
     const autoUrl = `https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-vehicle?id=${vehicle.id}`;
 
     const lines = [
-      `Hallo, ik heb interesse in de volgende auto:`,
-      ``,
-      `🚗 ${vehicle.merk} ${vehicle.model} ${vehicle.uitvoering}`,
-      `📅 Bouwjaar: ${vehicle.bouwjaar_year}`,
-      `📍 Kilometerstand: ${formatKm(vehicle.kmstand)}`,
-      `⛽ Brandstof: ${vehicle.brandstof}`,
-      `💰 Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
-      ...(maandbedrag > 0 ? [`📆 Maandbedrag: €${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
+      'Hallo, ik heb interesse in de volgende auto:',
+      '',
+      `\u{1F697} ${vehicle.merk} ${vehicle.model}${vehicle.uitvoering ? ' ' + vehicle.uitvoering : ''}`,
+      `\u{1F4C5} Bouwjaar: ${vehicle.bouwjaar_year}`,
+      `\u{1F4CD} Kilometerstand: ${formatKm(vehicle.kmstand)}`,
+      `\u26FD Brandstof: ${vehicle.brandstof}`,
+      `\u{1F4B0} Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
+      ...(maandbedrag > 0 ? [`\u{1F4C6} Maandbedrag: \u20AC${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
       ...(calculatorState ? [
-        `   └ Looptijd: ${calculatorState.looptijd} maanden`,
-        `   └ Aanbetaling: ${formatPrice(calculatorState.aanbetaling)}`,
-        `   └ Slottermijn: ${formatPrice(calculatorState.slottermijn)}`,
+        `   \u2514 Looptijd: ${calculatorState.looptijd} maanden`,
+        `   \u2514 Aanbetaling: ${formatPrice(calculatorState.aanbetaling)}`,
+        `   \u2514 Slottermijn: ${formatPrice(calculatorState.slottermijn)}`,
       ] : []),
-      ``,
-      `🔗 ${autoUrl}`,
-      ``,
-      `Kunnen jullie mij meer informatie geven?`,
+      '',
+      `\u{1F517} ${autoUrl}`,
+      '',
+      'Kunnen jullie mij meer informatie geven?',
     ];
 
     const message = lines.join('\n');
