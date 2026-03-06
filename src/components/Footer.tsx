@@ -81,7 +81,6 @@ export function Footer() {
               <p className="text-sm text-white/50 leading-relaxed mb-6">{tagline}</p>
             )}
 
-            {/* Reviews badge */}
             {s['footer_show_reviews_badge'] !== 'false' && (
               <div className="flex items-center gap-2 mb-6 bg-white/5 rounded-xl px-4 py-3 w-fit">
                 <div className="flex">
@@ -94,12 +93,9 @@ export function Footer() {
               </div>
             )}
 
-            {/* Contactgegevens */}
             <div className="space-y-3">
-              
-                href={`tel:${phoneRaw}`}
-                className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition"
-              >
+
+              <a href={`tel:${phoneRaw}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
                 <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                   <Phone className="h-4 w-4 text-smartlease-teal" />
                 </div>
@@ -110,12 +106,7 @@ export function Footer() {
               </a>
 
               {s['footer_show_whatsapp'] !== 'false' && (
-                
-                  href={`https://wa.me/${whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-sm text-white/60 hover:text-green-400 transition"
-                >
+                <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-white/60 hover:text-green-400 transition">
                   <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="h-4 w-4 text-green-400" />
                   </div>
@@ -124,10 +115,7 @@ export function Footer() {
               )}
 
               {s['footer_show_email'] !== 'false' && email && (
-                
-                  href={`mailto:${email}`}
-                  className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition"
-                >
+                <a href={`mailto:${email}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
                   <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                     <Mail className="h-4 w-4 text-smartlease-teal" />
                   </div>
@@ -137,10 +125,10 @@ export function Footer() {
                   </div>
                 </a>
               )}
+
             </div>
           </div>
 
-          {/* Kolom 2 – Ons aanbod */}
           {s['footer_show_aanbod'] !== 'false' && aanbodLinks.length > 0 && (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col1Title}</h4>
@@ -156,7 +144,6 @@ export function Footer() {
             </div>
           )}
 
-          {/* Kolom 3 – Financial Lease */}
           {s['footer_show_financial_lease'] !== 'false' && flLinks.length > 0 && (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col2Title}</h4>
@@ -172,7 +159,6 @@ export function Footer() {
             </div>
           )}
 
-          {/* Kolom 4 – Meer informatie */}
           {s['footer_show_meer_informatie'] !== 'false' && meerInfoLinks.length > 0 && (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col3Title}</h4>
@@ -187,25 +173,21 @@ export function Footer() {
               </ul>
             </div>
           )}
+
         </div>
 
-        {/* CTA blok */}
         {s['footer_show_cta_blok'] !== 'false' && (
           <div className="mt-12 rounded-2xl bg-gradient-to-r from-smartlease-teal/10 to-blue-500/10 border border-white/10 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <p className="font-bold text-white text-lg">Gratis offerte?</p>
               <p className="text-sm text-white/50">Binnen 24 uur een persoonlijk voorstel op maat.</p>
             </div>
-            <Link
-              to="/offerte"
-              className="flex-shrink-0 bg-smartlease-teal hover:bg-teal-400 text-white font-bold px-6 py-3 rounded-xl transition text-sm"
-            >
+            <Link to="/offerte" className="flex-shrink-0 bg-smartlease-teal hover:bg-teal-400 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
               Aanvragen →
             </Link>
           </div>
         )}
 
-        {/* Bottom bar */}
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/30">
           <span>{copyright}</span>
           <div className="flex gap-6">
@@ -214,7 +196,8 @@ export function Footer() {
             <Link to="/offerte" className="hover:text-white transition">Offerte</Link>
           </div>
         </div>
+
       </div>
     </footer>
   );
-} 
+}
