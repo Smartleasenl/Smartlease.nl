@@ -107,7 +107,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-gray-200/60 cursor-pointer group border border-gray-100 hover:border-teal-200 transition-all duration-500 ease-out"
     >
       {/* Image — 16:9 verhouding voor nette weergave op alle kaartjes */}
-      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '16/9' }}>
+      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
         {showPlaceholder ? (
           <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
         ) : (
