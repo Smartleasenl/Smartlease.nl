@@ -8,7 +8,7 @@ import {
   ChevronRight, ChevronDown, Check,
   Users, Truck, Recycle, Zap, LayoutGrid,
 } from 'lucide-react';
-import { saveScrollPosition } from './ScrollToTop';
+import { saveScrollPosition } from '../utils/scrollStore';
 
 // ── Aanbod subcategorieën (zonder Motoren) ──
 const AANBOD_SUB = [
