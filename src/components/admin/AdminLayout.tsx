@@ -8,17 +8,18 @@ import {
 } from 'lucide-react';
 
 const SIDEBAR_ITEMS = [
-  { to: '/admin',                   label: 'Dashboard',        icon: LayoutDashboard, exact: true },
-  { to: '/admin/site-instellingen', label: 'Site Instellingen',icon: Settings },
-  { to: '/admin/leads',             label: 'Leads',            icon: Users },
-  { to: '/admin/dealers',           label: 'Dealers',          icon: Building2 },
-  { to: '/admin/pagina-beheer',     label: 'Pagina beheer',    icon: Layout },
-  { to: '/admin/footer-beheer',     label: 'Footer beheer',    icon: PanelBottom },
-  { to: '/admin/reviews',           label: 'Reviews',          icon: Star },
-  { to: '/admin/faq-beheer',        label: 'FAQ beheer',       icon: HelpCircle },
-  { to: '/admin/blog-beheer',       label: 'Blog beheer',      icon: BookOpen },
-  { to: '/admin/statistieken',      label: 'Statistieken',     icon: BarChart3 },
-  { to: '/admin/paginas',           label: "Pagina's (oud)",   icon: FileText },
+  { to: '/admin',                   label: 'Dashboard',          icon: LayoutDashboard, exact: true },
+  { to: '/admin/site-instellingen', label: 'Site Instellingen',  icon: Settings },
+  { to: '/admin/leads',             label: 'Leads',              icon: Users },
+  { to: '/admin/dealers',           label: 'Dealers',            icon: Building2 },
+  { to: '/admin/pagina-beheer',     label: 'Pagina beheer',      icon: Layout },
+  { to: '/admin/footer-beheer',     label: 'Footer beheer',      icon: PanelBottom },
+  { to: '/admin/footer-links',      label: 'Footer links',       icon: Link2 },   // ← nieuw
+  { to: '/admin/reviews',           label: 'Reviews',            icon: Star },
+  { to: '/admin/faq-beheer',        label: 'FAQ beheer',         icon: HelpCircle },
+  { to: '/admin/blog-beheer',       label: 'Blog beheer',        icon: BookOpen },
+  { to: '/admin/statistieken',      label: 'Statistieken',       icon: BarChart3 },
+  { to: '/admin/paginas',           label: "Pagina's (oud)",     icon: FileText },
 ];
 
 export default function AdminLayout() {
