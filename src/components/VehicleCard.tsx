@@ -20,6 +20,14 @@ function berekenMaandprijs(verkoopprijs: number): number {
   return Math.round(pmt);
 }
 
+// Placeholder afbeelding dimensies van nederlandmobiel.nl (geen foto beschikbaar)
+const PLACEHOLDER_W = 946;
+const PLACEHOLDER_H = 473;
+
+function isPlaceholderImg(img: HTMLImageElement): boolean {
+  return img.naturalWidth === PLACEHOLDER_W && img.naturalHeight === PLACEHOLDER_H;
+}
+
 function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 select-none">
@@ -35,27 +43,48 @@ function CarPlaceholder({ merk, model }: { merk: string; model: string }) {
 
 export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
   const [imgError, setImgError] = useState(false);
-  const [checked, setChecked] = useState(false);
 
-  const rawUrl = vehicle.external_id && vehicle.small_picture
-    ? proxyThumb(vehicle.external_id)
-    : vehicle.small_picture || null;
+  // Primair: proxied thumbnail. Fallback: small_picture rechtstreeks.
+  const proxyUrl = vehicle.external_id ? proxyThumb(vehicle.external_id) : null;
+  const fallbackUrl = vehicle.small_picture || null;
+
+  const [imageUrl, setImageUrl] = useState<string | null>(proxyUrl || fallbackUrl);
 
   useEffect(() => {
-    if (!rawUrl) { setChecked(true); return; }
-    const img = new Image();
-    img.onload = () => {
-      if (img.naturalWidth === 946 && img.naturalHeight === 473) {
-        setImgError(true);
-      }
-      setChecked(true);
-    };
-    img.onerror = () => {
+    const firstUrl = proxyUrl || fallbackUrl;
+    if (!firstUrl) {
       setImgError(true);
-      setChecked(true);
-    };
-    img.src = rawUrl;
-  }, [rawUrl]);
+      return;
+    }
+
+    function tryUrl(url: string, nextUrl: string | null) {
+      const img = new Image();
+      img.onload = () => {
+        if (isPlaceholderImg(img)) {
+          // Proxy geeft "geen foto" placeholder terug
+          if (nextUrl) {
+            tryUrl(nextUrl, null);
+          } else {
+            setImgError(true);
+          }
+        } else {
+          setImageUrl(url);
+        }
+      };
+      img.onerror = () => {
+        if (nextUrl) {
+          tryUrl(nextUrl, null);
+        } else {
+          setImgError(true);
+        }
+      };
+      img.src = url;
+    }
+
+    // Probeer proxyUrl eerst, daarna fallbackUrl
+    const second = proxyUrl && fallbackUrl && fallbackUrl !== proxyUrl ? fallbackUrl : null;
+    tryUrl(firstUrl, second);
+  }, [vehicle.external_id, vehicle.small_picture]);
 
   const formatPrice = (price: number) => {
     if (price === 0) return 'Prijs op aanvraag';
@@ -69,10 +98,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
     return new Intl.NumberFormat('nl-NL').format(km) + ' km';
   };
 
-  const imageUrl = rawUrl;
   const showPlaceholder = !imageUrl || imgError;
-
-  // Altijd eigen berekening gebruiken
   const maandprijs = berekenMaandprijs(vehicle.verkoopprijs);
 
   return (
@@ -80,8 +106,8 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
       onClick={onClick}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-gray-200/60 cursor-pointer group border border-gray-100 hover:border-teal-200 transition-all duration-500 ease-out"
     >
-      {/* Image */}
-      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '16/10' }}>
+      {/* Image — 16:9 verhouding voor nette weergave op alle kaartjes */}
+      <div className="relative overflow-hidden bg-gray-100" style={{ aspectRatio: '16/9' }}>
         {showPlaceholder ? (
           <CarPlaceholder merk={vehicle.merk} model={vehicle.model} />
         ) : (
@@ -89,14 +115,24 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
             <img
               src={imageUrl!}
               alt={`${vehicle.merk} ${vehicle.model}`}
-              className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700 ease-out"
+              className="w-full h-full object-cover object-center group-hover:scale-[1.04] transition-transform duration-700 ease-out"
               loading="lazy"
-              onError={() => setImgError(true)}
+              onError={() => {
+                // Probeer bij runtime error nog de fallback
+                if (imageUrl !== fallbackUrl && fallbackUrl) {
+                  setImageUrl(fallbackUrl);
+                } else {
+                  setImgError(true);
+                }
+              }}
               onLoad={(e) => {
                 const img = e.currentTarget;
-                if (img.naturalWidth === 0 || img.naturalWidth < 10 ||
-                  (img.naturalWidth === 946 && img.naturalHeight === 473)) {
-                  setImgError(true);
+                if (img.naturalWidth === 0 || img.naturalWidth < 10 || isPlaceholderImg(img)) {
+                  if (imageUrl !== fallbackUrl && fallbackUrl) {
+                    setImageUrl(fallbackUrl);
+                  } else {
+                    setImgError(true);
+                  }
                 }
               }}
             />
@@ -104,14 +140,14 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           </>
         )}
 
-        {/* Year badge */}
+        {/* Bouwjaar badge */}
         {vehicle.bouwjaar_year && (
           <span className="absolute top-3 left-3 bg-smartlease-teal text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-lg shadow-teal-500/30 tracking-wide">
             {vehicle.bouwjaar_year}
           </span>
         )}
 
-        {/* BTW badge */}
+        {/* BTW/Marge badge */}
         {vehicle.btw_marge && (
           <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">
             {vehicle.btw_marge}
@@ -121,7 +157,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
 
       {/* Content */}
       <div className="p-4 md:p-5">
-        {/* Title */}
+        {/* Titel */}
         <div className="mb-3">
           <h3 className="text-base font-bold text-gray-900 mb-0.5 group-hover:text-smartlease-blue transition-colors duration-300">
             {vehicle.merk} {vehicle.model}
@@ -129,7 +165,7 @@ export function VehicleCard({ vehicle, onClick }: VehicleCardProps) {
           <p className="text-gray-400 text-sm truncate">{vehicle.uitvoering}</p>
         </div>
 
-        {/* Price */}
+        {/* Prijs */}
         <div className="mb-4">
           {maandprijs > 0 ? (
             <>
