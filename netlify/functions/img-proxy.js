@@ -1,40 +1,40 @@
-exports.handler = async (event) => {
-  const { id, s = '320', n = '1' } = event.queryStringParameters || {};
-  if (!id) return { statusCode: 400, body: 'Missing id' };
-  if (!/^\d+$/.test(id)) return { statusCode: 400, body: 'Invalid id' };
+export default async (req) => {
+  const url = new URL(req.url);
+  const id = url.searchParams.get('id');
+  const s = url.searchParams.get('s') || '320';
+  const n = url.searchParams.get('n') || '1';
 
-  const supabaseUrl = `https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/og-image?id=${id}&s=${s}&n=${n}`;
-  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamJnaHFyZGx6d3hnZnV1eHNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMTUzNDksImV4cCI6MjA4NzY5MTM0OX0.TboqxP8kTiJgouaO5zZJdvbki07HK6M0FPj6uo5uG-M';
+  if (!id || !/^\d+$/.test(id)) {
+    return new Response('Invalid id', { status: 400 });
+  }
+
+  // VPS IP direct — gewhitelisted bij nederlandmobiel.nl
+  // Apache op cPanel draait op poort 8443 (HTTPS) of 8080 (HTTP)
+  const vpsUrl = `http://185.205.246.13:8080/public/img.php?id=${id}&s=${s}&n=${n}`;
 
   try {
-    const response = await fetch(supabaseUrl, {
-      headers: { 'Authorization': `Bearer ${ANON_KEY}` }
+    const response = await fetch(vpsUrl, {
+      headers: { 'Host': 'smartlease.nl' },
+      signal: AbortSignal.timeout(10000),
     });
 
-    if (!response.ok) return { statusCode: response.status, body: 'Image not found' };
-
-    // Supabase geeft al een JPEG terug — direct doorgeven als base64
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-    
-    // Alleen base64 encoden als het een afbeelding is
-    if (contentType.startsWith('image/')) {
-      const buffer = await response.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'Cache-Control': 'public, max-age=86400',
-          'Access-Control-Allow-Origin': '*',
-        },
-        body: base64,
-        isBase64Encoded: true,
-      };
-    } else {
-      // Geen afbeelding (tekst/foutmelding)
-      return { statusCode: 404, body: 'Not an image' };
+    if (!response.ok || !response.headers.get('content-type')?.includes('image/')) {
+      return new Response('Image not found', { status: 404 });
     }
+
+    const buffer = await response.arrayBuffer();
+    return new Response(buffer, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/jpeg',
+        'Cache-Control': 'public, max-age=86400',
+      },
+    });
   } catch (err) {
-    return { statusCode: 500, body: 'Proxy error' };
+    return new Response('Proxy error: ' + err.message, { status: 502 });
   }
+};
+
+export const config = {
+  path: '/api/img-proxy',
 };
