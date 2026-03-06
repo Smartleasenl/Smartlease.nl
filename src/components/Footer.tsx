@@ -55,21 +55,20 @@ export function Footer() {
   const phoneRaw    = s['contact_phone_raw']     || '0858008600';
   const whatsapp    = s['contact_whatsapp']      || '31613669328';
   const email       = s['contact_email']         || 'info@smartlease.nl';
-  const hours       = s['footer_openingstijden'] || 'Ma-Vr 9:00 – 18:00 | Za 10:00 – 14:00';
+  const hours       = s['footer_openingstijden'] || 'Ma-Vr 9:00 - 18:00 | Za 10:00 - 14:00';
   const tagline     = s['footer_tagline']        || '';
   const copyright   = s['footer_copyright']      || `© ${new Date().getFullYear()} Smartlease.nl`;
   const reviewScore = s['review_score']          || '4,9';
-
-  const col1Title = s['footer_col1_title'] || 'Ons aanbod';
-  const col2Title = s['footer_col2_title'] || 'Financial Lease';
-  const col3Title = s['footer_col3_title'] || 'Meer informatie';
+  const col1Title   = s['footer_col1_title']     || 'Ons aanbod';
+  const col2Title   = s['footer_col2_title']     || 'Financial Lease';
+  const col3Title   = s['footer_col3_title']     || 'Meer informatie';
 
   return (
     <footer className="bg-[#0a1628] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
 
-          {/* Kolom 1 – Bedrijfsinfo */}
+          {/* Kolom 1 - Bedrijfsinfo */}
           <div>
             <img
               src="/smart-lease-white-logo.png"
@@ -77,11 +76,11 @@ export function Footer() {
               className="h-12 w-auto mb-5"
             />
 
-            {tagline && (
+            {tagline ? (
               <p className="text-sm text-white/50 leading-relaxed mb-6">{tagline}</p>
-            )}
+            ) : null}
 
-            {s['footer_show_reviews_badge'] !== 'false' && (
+            {s['footer_show_reviews_badge'] !== 'false' ? (
               <div className="flex items-center gap-2 mb-6 bg-white/5 rounded-xl px-4 py-3 w-fit">
                 <div className="flex">
                   {[1,2,3,4,5].map(i => (
@@ -91,10 +90,9 @@ export function Footer() {
                 <span className="font-bold text-sm">{reviewScore}</span>
                 <span className="text-white/40 text-xs">uit 5 sterren</span>
               </div>
-            )}
+            ) : null}
 
             <div className="space-y-3">
-
               <a href={`tel:${phoneRaw}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
                 <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                   <Phone className="h-4 w-4 text-smartlease-teal" />
@@ -105,16 +103,16 @@ export function Footer() {
                 </div>
               </a>
 
-              {s['footer_show_whatsapp'] !== 'false' && (
+              {s['footer_show_whatsapp'] !== 'false' ? (
                 <a href={`https://wa.me/${whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-white/60 hover:text-green-400 transition">
                   <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
                     <MessageCircle className="h-4 w-4 text-green-400" />
                   </div>
                   <span className="font-semibold text-white">WhatsApp</span>
                 </a>
-              )}
+              ) : null}
 
-              {s['footer_show_email'] !== 'false' && email && (
+              {s['footer_show_email'] !== 'false' && email ? (
                 <a href={`mailto:${email}`} className="flex items-center gap-3 text-sm text-white/60 hover:text-smartlease-teal transition">
                   <div className="w-8 h-8 rounded-lg bg-smartlease-teal/10 flex items-center justify-center flex-shrink-0">
                     <Mail className="h-4 w-4 text-smartlease-teal" />
@@ -124,12 +122,12 @@ export function Footer() {
                     <p className="text-xs text-white/40">Wij reageren snel</p>
                   </div>
                 </a>
-              )}
-
+              ) : null}
             </div>
           </div>
 
-          {s['footer_show_aanbod'] !== 'false' && aanbodLinks.length > 0 && (
+          {/* Kolom 2 - Ons aanbod */}
+          {s['footer_show_aanbod'] !== 'false' && aanbodLinks.length > 0 ? (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col1Title}</h4>
               <ul className="space-y-2.5">
@@ -142,9 +140,10 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
 
-          {s['footer_show_financial_lease'] !== 'false' && flLinks.length > 0 && (
+          {/* Kolom 3 - Financial Lease */}
+          {s['footer_show_financial_lease'] !== 'false' && flLinks.length > 0 ? (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col2Title}</h4>
               <ul className="space-y-2.5">
@@ -157,9 +156,10 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
 
-          {s['footer_show_meer_informatie'] !== 'false' && meerInfoLinks.length > 0 && (
+          {/* Kolom 4 - Meer informatie */}
+          {s['footer_show_meer_informatie'] !== 'false' && meerInfoLinks.length > 0 ? (
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-white/30 mb-5">{col3Title}</h4>
               <ul className="space-y-2.5">
@@ -172,22 +172,24 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
 
         </div>
 
-        {s['footer_show_cta_blok'] !== 'false' && (
+        {/* CTA blok */}
+        {s['footer_show_cta_blok'] !== 'false' ? (
           <div className="mt-12 rounded-2xl bg-gradient-to-r from-smartlease-teal/10 to-blue-500/10 border border-white/10 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <p className="font-bold text-white text-lg">Gratis offerte?</p>
               <p className="text-sm text-white/50">Binnen 24 uur een persoonlijk voorstel op maat.</p>
             </div>
             <Link to="/offerte" className="flex-shrink-0 bg-smartlease-teal hover:bg-teal-400 text-white font-bold px-6 py-3 rounded-xl transition text-sm">
-              Aanvragen →
+              Aanvragen &rarr;
             </Link>
           </div>
-        )}
+        ) : null}
 
+        {/* Bottom bar */}
         <div className="mt-10 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/30">
           <span>{copyright}</span>
           <div className="flex gap-6">
