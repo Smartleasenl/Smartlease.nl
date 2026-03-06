@@ -1,15 +1,47 @@
-const PROXY_BASE = 'https://smartlease.nl/img.php';
+// src/utils/imageProxy.ts
+// Converteert nederlandmobiel.nl afbeelding URLs naar proxy URLs
 
-export const proxyImage = (url: string | null | undefined): string => {
-  if (!url) return '/placeholder-car.svg';
-  return `${PROXY_BASE}?url=${encodeURIComponent(url)}`;
-};
+/**
+ * Converteert een nederlandmobiel.nl afbeelding URL naar een proxy URL
+ * zodat CORS problemen worden omzeild.
+ *
+ * Input:  https://images.nederlandmobiel.nl/auto/21940556/320/1.jpg?...
+ * Output: /img-proxy?id=21940556&s=320&n=1
+ */
+export function getProxiedImageUrl(originalUrl: string | null | undefined): string {
+  if (!originalUrl) return '';
 
-export const proxyThumb = (externalId: string | null | undefined): string => {
-  if (!externalId) return '/placeholder-car.svg';
-  return `${PROXY_BASE}?id=${externalId}&s=640&n=1`;
-};
+  // Als het al een proxy URL is, geef terug
+  if (originalUrl.includes('/img-proxy')) return originalUrl;
 
-export const proxyLargeImage = (externalId: string, photoNumber: number): string => {
-  return `${PROXY_BASE}?id=${externalId}&s=1280&n=${photoNumber}`;
-};
+  // Probeer het ID te extraheren uit nederlandmobiel.nl URL
+  // Formaat: https://images.nederlandmobiel.nl/auto/{id}/{size}/{number}.jpg
+  const match = originalUrl.match(/nederlandmobiel\.nl\/auto\/(\d+)\/(\d+)\/(\d+)/);
+  if (match) {
+    const [, id, size, number] = match;
+    return `/img-proxy?id=${id}&s=${size}&n=${number}`;
+  }
+
+  // Fallback: geef originele URL terug
+  return originalUrl;
+}
+
+/**
+ * Geeft een fallback afbeelding URL terug als de originele niet beschikbaar is
+ */
+export function getVehicleImageUrl(
+  smallPicture: string | null | undefined,
+  size: number = 320
+): string {
+  if (!smallPicture) return '';
+
+  // Vervang size in de URL als nodig
+  const proxied = getProxiedImageUrl(smallPicture);
+
+  // Als size anders is dan 320, pas aan
+  if (size !== 320 && proxied.includes('img-proxy')) {
+    return proxied.replace('s=320', `s=${size}`);
+  }
+
+  return proxied;
+}
