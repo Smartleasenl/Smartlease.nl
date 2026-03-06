@@ -8,6 +8,7 @@ import {
   ChevronRight, ChevronDown, Check,
   Users, Truck, Recycle, Zap, LayoutGrid,
 } from 'lucide-react';
+import { saveScrollPosition } from './ScrollToTop';
 
 // ── Aanbod subcategorieën (zonder Motoren) ──
 const AANBOD_SUB = [
@@ -55,9 +56,13 @@ export function Header() {
   }
 
   // ── Body scroll lock (inclusief iOS Safari fix) ──
+  // BELANGRIJK: sla scroll positie op VÓÓR position:fixed wordt gezet,
+  // want daarna is window.scrollY altijd 0 → ScrollToTop zou 0 opslaan.
   useEffect(() => {
     if (mobileMenuOpen) {
       const scrollY = window.scrollY;
+      // Sla de echte positie op vóórdat body-lock window.scrollY reset naar 0
+      saveScrollPosition(location.pathname + location.search, scrollY);
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
@@ -293,14 +298,7 @@ export function Header() {
         </div>
       </div>
 
-      {/*
-        ── Mobile fullscreen menu ──────────────────────────────────────────────
-        FIX 1: z-[55] (was z-40) → nu BOVEN de sticky header (z-50),
-                maar ONDER hamburger/logo/iconen (z-[60])
-        FIX 2: top via inline style = HEADER_HEIGHT (64px) → sluit direct
-                aan op de onderkant van de header, geen witte ruimte meer.
-                (was top-[calc(4rem+2rem)] = 96px → 32px te laag)
-      */}
+      {/* Mobile fullscreen menu */}
       <div
         className={`md:hidden fixed inset-x-0 bottom-0 z-[55] transition-all duration-300 ${
           mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -313,7 +311,7 @@ export function Header() {
           onClick={() => setMobileMenuOpen(false)}
         />
 
-        {/* Sliding panel — vult de volledige ruimte onder de header */}
+        {/* Sliding panel */}
         <div
           className={`absolute inset-x-0 bottom-0 bg-white overflow-y-auto overscroll-contain transition-transform duration-300 ease-out ${
             mobileMenuOpen ? 'translate-y-0' : '-translate-y-4'
