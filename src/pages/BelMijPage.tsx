@@ -50,12 +50,40 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 const fmtKm = (n: number) => new Intl.NumberFormat('nl-NL').format(n);
 
+// Herbruikbaar auto-foto component met consistente 4:3 ratio
+function VehiclePhoto({ imageUrl, title }: { imageUrl: string | null; title: string }) {
+  const [imgError, setImgError] = useState(false);
+  if (!imageUrl || imgError) {
+    return (
+      <div className="w-full bg-gray-100 flex items-center justify-center" style={{ aspectRatio: '4/3' }}>
+        <Car className="h-10 w-10 text-gray-300" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-full overflow-hidden" style={{ aspectRatio: '4/3' }}>
+      <img
+        src={imageUrl}
+        alt={title}
+        className="w-full h-full object-cover object-center"
+        onError={() => setImgError(true)}
+      />
+    </div>
+  );
+}
+
 export function BelMijPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const state = location.state as { vehicle?: VehicleData; calculator?: CalculatorData } | null;
+  const state = location.state as {
+    vehicle?: VehicleData;
+    calculator?: CalculatorData;
+    cachedImageUrl?: string;
+  } | null;
+
   const vehicle = state?.vehicle;
   const calculator = state?.calculator;
+  const cachedImageUrl = state?.cachedImageUrl || vehicle?.small_picture || null;
 
   const [form, setForm] = useState<BelMijForm>({
     voornaam: '',
@@ -117,7 +145,6 @@ export function BelMijPage() {
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Send notification email (fire-and-forget)
       try {
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://bcjbghqrdlzwxgfuuxss.supabase.co';
         fetch(`${supabaseUrl}/functions/v1/send-offerte-email`, {
@@ -133,6 +160,7 @@ export function BelMijPage() {
             bericht: form.bericht,
             vehicle_info: vehicleTitle,
             vehicle_price: vehicle?.verkoopprijs,
+            vehicle_image: cachedImageUrl,
             calculator: calculator,
             type: 'terugbelverzoek',
           }),
@@ -146,7 +174,7 @@ export function BelMijPage() {
     setLoading(false);
   };
 
-  // ── Bevestigingsscherm ──────────────────────────────────────────────
+  // ── Bevestigingsscherm ──
   if (success) {
     return (
       <div className="bg-[#f8f9fb] min-h-screen">
@@ -155,13 +183,10 @@ export function BelMijPage() {
             <div className="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-8 text-center text-white">
               <CheckCircle className="h-16 w-16 mx-auto mb-4 opacity-90" />
               <h1 className="text-2xl font-bold mb-2">Terugbelverzoek verzonden!</h1>
-              <p className="text-blue-100">
-                Wij bellen je zo snel mogelijk terug.
-              </p>
+              <p className="text-blue-100">Wij bellen je zo snel mogelijk terug.</p>
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Overzicht */}
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                 <h3 className="font-bold text-gray-900 text-sm">Je gegevens</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -184,12 +209,16 @@ export function BelMijPage() {
                 </div>
               </div>
 
-              {vehicleTitle && (
+              {vehicle && (
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-bold text-gray-900 text-sm mb-1">Voertuig</h3>
-                  <p className="text-sm text-gray-600">{vehicleTitle}</p>
-                  {vehicle?.verkoopprijs && vehicle.verkoopprijs > 0 && (
-                    <p className="text-sm font-semibold text-smartlease-teal mt-1">{fmt(vehicle.verkoopprijs)}</p>
+                  <h3 className="font-bold text-gray-900 text-sm mb-3">Voertuig</h3>
+                  {/* Foto ook in bevestigingsscherm */}
+                  <div className="rounded-lg overflow-hidden mb-3">
+                    <VehiclePhoto imageUrl={cachedImageUrl} title={vehicleTitle} />
+                  </div>
+                  <p className="text-sm text-gray-600 font-semibold">{vehicleTitle}</p>
+                  {vehicle.verkoopprijs && vehicle.verkoopprijs > 0 && (
+                    <p className="text-sm font-bold text-smartlease-teal mt-1">{fmt(vehicle.verkoopprijs)}</p>
                   )}
                 </div>
               )}
@@ -219,17 +248,10 @@ export function BelMijPage() {
               )}
 
               <div className="flex gap-3 pt-2">
-                <Link
-                  to="/aanbod"
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition"
-                >
-                  <Car className="h-5 w-5" />
-                  Bekijk meer auto's
+                <Link to="/aanbod" className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition">
+                  <Car className="h-5 w-5" /> Bekijk meer auto's
                 </Link>
-                <Link
-                  to="/"
-                  className="flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition"
-                >
+                <Link to="/" className="flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">
                   Home
                 </Link>
               </div>
@@ -240,11 +262,10 @@ export function BelMijPage() {
     );
   }
 
-  // ── Formulier ──────────────────────────────────────────────────────
+  // ── Formulier ──
   return (
     <div className="bg-[#f8f9fb] min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Breadcrumb */}
         <nav className="text-sm text-gray-400 mb-6">
           <Link to="/" className="hover:text-smartlease-teal transition">Home</Link>
           <span className="mx-2">›</span>
@@ -254,7 +275,7 @@ export function BelMijPage() {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* ── Left: Form ── */}
+          {/* ── Formulier ── */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
               <button
@@ -285,56 +306,24 @@ export function BelMijPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Voornaam <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.voornaam}
-                      onChange={(e) => setForm({ ...form, voornaam: e.target.value })}
-                      placeholder="Jan"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Voornaam <span className="text-red-500">*</span></label>
+                    <input type="text" required value={form.voornaam} onChange={(e) => setForm({ ...form, voornaam: e.target.value })} placeholder="Jan"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Achternaam <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.achternaam}
-                      onChange={(e) => setForm({ ...form, achternaam: e.target.value })}
-                      placeholder="de Vries"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Achternaam <span className="text-red-500">*</span></label>
+                    <input type="text" required value={form.achternaam} onChange={(e) => setForm({ ...form, achternaam: e.target.value })} placeholder="de Vries"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      E-mailadres <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      placeholder="jan@bedrijf.nl"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">E-mailadres <span className="text-red-500">*</span></label>
+                    <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="jan@bedrijf.nl"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Telefoonnummer <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={form.telefoon}
-                      onChange={(e) => setForm({ ...form, telefoon: e.target.value })}
-                      placeholder="06 - 12345678"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Telefoonnummer <span className="text-red-500">*</span></label>
+                    <input type="tel" required value={form.telefoon} onChange={(e) => setForm({ ...form, telefoon: e.target.value })} placeholder="06 - 12345678"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                 </div>
               </div>
@@ -347,30 +336,14 @@ export function BelMijPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      Bedrijfsnaam <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.bedrijfsnaam}
-                      onChange={(e) => setForm({ ...form, bedrijfsnaam: e.target.value })}
-                      placeholder="Bedrijfsnaam B.V."
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Bedrijfsnaam <span className="text-red-500">*</span></label>
+                    <input type="text" required value={form.bedrijfsnaam} onChange={(e) => setForm({ ...form, bedrijfsnaam: e.target.value })} placeholder="Bedrijfsnaam B.V."
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                      KvK-nummer <span className="text-gray-400 font-normal">(optioneel)</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={form.kvk_nummer}
-                      onChange={(e) => setForm({ ...form, kvk_nummer: e.target.value })}
-                      placeholder="12345678"
-                      maxLength={8}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition"
-                    />
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">KvK-nummer <span className="text-gray-400 font-normal">(optioneel)</span></label>
+                    <input type="text" value={form.kvk_nummer} onChange={(e) => setForm({ ...form, kvk_nummer: e.target.value })} placeholder="12345678" maxLength={8}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition" />
                   </div>
                 </div>
               </div>
@@ -380,56 +353,39 @@ export function BelMijPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Wanneer kunnen we je het beste bellen? <span className="text-gray-400 font-normal">(optioneel)</span>
                 </label>
-                <textarea
-                  value={form.bericht}
-                  onChange={(e) => setForm({ ...form, bericht: e.target.value })}
-                  placeholder="Bijv. 's ochtends tussen 9:00 en 12:00, of heb je nog specifieke vragen?"
-                  rows={3}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition resize-y"
-                />
+                <textarea value={form.bericht} onChange={(e) => setForm({ ...form, bericht: e.target.value })}
+                  placeholder="Bijv. 's ochtends tussen 9:00 en 12:00, of heb je nog specifieke vragen?" rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-smartlease-teal/20 focus:border-smartlease-teal transition resize-y" />
               </div>
 
-              {/* Submit */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-smartlease-blue text-white rounded-xl font-bold text-lg hover:bg-smartlease-blue/90 active:scale-[0.98] disabled:opacity-60 transition-all shadow-lg shadow-smartlease-blue/20"
-              >
-                {loading ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Phone className="h-5 w-5" />
-                )}
+              <button type="submit" disabled={loading}
+                className="flex items-center justify-center gap-2 w-full px-8 py-4 bg-smartlease-blue text-white rounded-xl font-bold text-lg hover:bg-smartlease-blue/90 active:scale-[0.98] disabled:opacity-60 transition-all shadow-lg shadow-smartlease-blue/20">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Phone className="h-5 w-5" />}
                 {loading ? 'Bezig met verzenden...' : 'Terugbelverzoek versturen'}
               </button>
-
-              <p className="text-xs text-gray-400 text-center">
-                Je gegevens worden veilig verwerkt en nooit gedeeld met derden.
-              </p>
+              <p className="text-xs text-gray-400 text-center">Je gegevens worden veilig verwerkt en nooit gedeeld met derden.</p>
             </form>
           </div>
 
-          {/* ── Right sidebar ── */}
+          {/* ── Sidebar ── */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {/* Voertuig info */}
+
+              {/* Voertuig met foto — 4:3 ratio consistent met rest van de site */}
               {vehicle && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <Car className="h-4 w-4 text-smartlease-teal" />
+                  <VehiclePhoto imageUrl={cachedImageUrl} title={vehicleTitle} />
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Car className="h-4 w-4 text-smartlease-teal flex-shrink-0" />
                       <h3 className="font-bold text-gray-900 text-sm">Gekozen voertuig</h3>
                     </div>
-                  </div>
-                  <div className="p-4 space-y-3">
                     <h4 className="font-bold text-gray-900">{vehicle.merk} {vehicle.model}</h4>
-                    {vehicle.uitvoering && (
-                      <p className="text-xs text-gray-500">{vehicle.uitvoering}</p>
-                    )}
+                    {vehicle.uitvoering && <p className="text-xs text-gray-500 mt-0.5">{vehicle.uitvoering}</p>}
                     {vehicle.verkoopprijs && vehicle.verkoopprijs > 0 && (
-                      <p className="text-lg font-bold text-smartlease-teal">{fmt(vehicle.verkoopprijs)}</p>
+                      <p className="text-lg font-bold text-smartlease-teal mt-2">{fmt(vehicle.verkoopprijs)}</p>
                     )}
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 gap-2 text-xs mt-3">
                       {vehicle.bouwjaar && (
                         <div className="bg-gray-50 rounded-lg px-2.5 py-2">
                           <span className="text-gray-400">Bouwjaar</span>
@@ -492,20 +448,17 @@ export function BelMijPage() {
                 </div>
               )}
 
-              {/* Contact info */}
+              {/* Contact */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
                 <h3 className="font-bold text-gray-900 text-sm">Vragen?</h3>
                 <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
-                  <Phone className="h-4 w-4" />
-                  085 - 80 08 600
+                  <Phone className="h-4 w-4" /> 085 - 80 08 600
                 </a>
                 <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 hover:text-green-600 transition">
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
                 </a>
                 <a href="mailto:info@smartlease.nl" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
-                  <Mail className="h-4 w-4" />
-                  info@smartlease.nl
+                  <Mail className="h-4 w-4" /> info@smartlease.nl
                 </a>
               </div>
             </div>
