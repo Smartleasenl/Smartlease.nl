@@ -114,7 +114,6 @@ export function VehicleDetailPage() {
   const [imageLoading, setImageLoading] = useState(false);
   const [calculatorState, setCalculatorState] = useState<CalculatorState | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  
 
   // Touch/swipe refs
   const touchStartX = useRef(0);
@@ -283,23 +282,34 @@ export function VehicleDetailPage() {
     window.open(`https://wa.me/31613669328?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  // ─── Gedeelde vehicle state voor navigate ─────────────────────────────────
+  const buildVehicleState = () => ({
+    id: vehicle!.id,
+    merk: vehicle!.merk,
+    model: vehicle!.model,
+    uitvoering: vehicle!.uitvoering,
+    bouwjaar: vehicle!.bouwjaar_year,
+    verkoopprijs: vehicle!.verkoopprijs,
+    brandstof: vehicle!.brandstof,
+    transmissie: vehicle!.transmissie,
+    kmstand: vehicle!.kmstand,
+    small_picture: vehicle!.small_picture,
+  });
+
+  // Eerste beschikbare afbeelding meegeven als cachedImageUrl
+  const getCachedImageUrl = (): string | null => {
+    if (images.length > 0) return images[0];
+    if (vehicle?.small_picture) return vehicle.small_picture;
+    return null;
+  };
+
   const handleOfferteNavigate = () => {
     if (!vehicle) return;
     navigate('/offerte', {
       state: {
-        vehicle: {
-          id: vehicle.id,
-          merk: vehicle.merk,
-          model: vehicle.model,
-          uitvoering: vehicle.uitvoering,
-          bouwjaar: vehicle.bouwjaar_year,
-          verkoopprijs: vehicle.verkoopprijs,
-          brandstof: vehicle.brandstof,
-          transmissie: vehicle.transmissie,
-          kmstand: vehicle.kmstand,
-          small_picture: vehicle.small_picture,
-        },
+        vehicle: buildVehicleState(),
         calculator: calculatorState,
+        cachedImageUrl: getCachedImageUrl(),
       },
     });
   };
@@ -308,19 +318,9 @@ export function VehicleDetailPage() {
     if (!vehicle) return;
     navigate('/bel-mij', {
       state: {
-        vehicle: {
-          id: vehicle.id,
-          merk: vehicle.merk,
-          model: vehicle.model,
-          uitvoering: vehicle.uitvoering,
-          bouwjaar: vehicle.bouwjaar_year,
-          verkoopprijs: vehicle.verkoopprijs,
-          brandstof: vehicle.brandstof,
-          transmissie: vehicle.transmissie,
-          kmstand: vehicle.kmstand,
-          small_picture: vehicle.small_picture,
-        },
+        vehicle: buildVehicleState(),
         calculator: calculatorState,
+        cachedImageUrl: getCachedImageUrl(),
       },
     });
   };
@@ -333,10 +333,6 @@ export function VehicleDetailPage() {
       navigate('/aanbod');
     }
   };
-
-  const vehicleInfo = vehicle
-    ? `${vehicle.merk} ${vehicle.model} ${vehicle.uitvoering}`
-    : '';
 
   if (loading) {
     return (
