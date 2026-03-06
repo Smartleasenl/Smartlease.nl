@@ -1,32 +1,15 @@
 // netlify/functions/img-proxy.js
-// Proxies images from nederlandmobiel.nl om CORS te omzeilen
-// Gebruik: /img-proxy?id=21940556&s=640&n=1
-
 exports.handler = async (event) => {
   const { id, s = '320', n = '1' } = event.queryStringParameters || {};
+  if (!id) return { statusCode: 400, body: 'Missing id' };
+  if (!/^\d+$/.test(id)) return { statusCode: 400, body: 'Invalid id' };
 
-  if (!id) {
-    return { statusCode: 400, body: 'Missing id parameter' };
-  }
-
-  // Valideer dat id alleen cijfers bevat
-  if (!/^\d+$/.test(id)) {
-    return { statusCode: 400, body: 'Invalid id' };
-  }
-
-  const imageUrl = `https://images.nederlandmobiel.nl/auto/${id}/${s}/${n}.jpg?download=true&platform=smartautolease`;
+  // Roept VPS aan (gewhitelisted IP bij nederlandmobiel.nl)
+  const imageUrl = `http://185.205.246.13/public/img.php?id=${id}&s=${s}&n=${n}`;
 
   try {
-    const response = await fetch(imageUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Smartlease/1.0)',
-        'Referer': 'https://smartlease.nl/',
-      },
-    });
-
-    if (!response.ok) {
-      return { statusCode: response.status, body: 'Image not found' };
-    }
+    const response = await fetch(imageUrl);
+    if (!response.ok) return { statusCode: response.status, body: 'Image not found' };
 
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString('base64');
@@ -36,14 +19,13 @@ exports.handler = async (event) => {
       statusCode: 200,
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=86400', // 24 uur cache
+        'Cache-Control': 'public, max-age=86400',
         'Access-Control-Allow-Origin': '*',
       },
       body: base64,
       isBase64Encoded: true,
     };
   } catch (err) {
-    console.error('img-proxy error:', err);
     return { statusCode: 500, body: 'Proxy error' };
   }
 };
