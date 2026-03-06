@@ -34,6 +34,7 @@ interface CalculatorData {
   aanbetaling: number;
   maandbedrag: number;
   slottermijn: number;
+  financieringsbedrag?: number;
 }
 
 interface BelMijForm {
@@ -50,7 +51,6 @@ const fmt = (n: number) =>
   new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 const fmtKm = (n: number) => new Intl.NumberFormat('nl-NL').format(n);
 
-// Herbruikbaar auto-foto component met consistente 4:3 ratio
 function VehiclePhoto({ imageUrl, title }: { imageUrl: string | null; title: string }) {
   const [imgError, setImgError] = useState(false);
   if (!imageUrl || imgError) {
@@ -103,6 +103,10 @@ export function BelMijPage() {
   }, []);
 
   const vehicleTitle = vehicle ? `${vehicle.merk} ${vehicle.model} ${vehicle.uitvoering || ''}`.trim() : '';
+
+  // Bereken financieringsbedrag
+  const financieringsbedrag = calculator?.financieringsbedrag
+    ?? (calculator && vehicle?.verkoopprijs ? vehicle.verkoopprijs - calculator.aanbetaling : null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -212,7 +216,6 @@ export function BelMijPage() {
               {vehicle && (
                 <div className="bg-gray-50 rounded-xl p-4">
                   <h3 className="font-bold text-gray-900 text-sm mb-3">Voertuig</h3>
-                  {/* Foto ook in bevestigingsscherm */}
                   <div className="rounded-lg overflow-hidden mb-3">
                     <VehiclePhoto imageUrl={cachedImageUrl} title={vehicleTitle} />
                   </div>
@@ -223,25 +226,38 @@ export function BelMijPage() {
                 </div>
               )}
 
+              {/* Bevestiging berekening — volgorde: Aankoopprijs → Aanbetaling → Financieringsbedrag → Looptijd → Slottermijn → Maandbedrag */}
               {calculator && (
                 <div className="bg-gray-50 rounded-xl p-4">
                   <h3 className="font-bold text-gray-900 text-sm mb-2">Lease berekening</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-gray-400">Maandbedrag</span>
-                      <p className="font-bold text-smartlease-teal">€ {calculator.maandbedrag} p/m</p>
+                  <div className="space-y-2 text-sm">
+                    {vehicle?.verkoopprijs && vehicle.verkoopprijs > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Aankoopprijs</span>
+                        <span className="font-semibold text-gray-900">{fmt(vehicle.verkoopprijs)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Aanbetaling</span>
+                      <span className="font-semibold text-gray-900">{fmt(calculator.aanbetaling)}</span>
                     </div>
-                    <div>
-                      <span className="text-gray-400">Looptijd</span>
-                      <p className="font-medium text-gray-900">{calculator.looptijd} maanden</p>
+                    {financieringsbedrag && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Financieringsbedrag</span>
+                        <span className="font-semibold text-gray-900">{fmt(financieringsbedrag)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Looptijd</span>
+                      <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
                     </div>
-                    <div>
-                      <span className="text-gray-400">Aanbetaling</span>
-                      <p className="font-medium text-gray-900">{fmt(calculator.aanbetaling)}</p>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Slottermijn</span>
+                      <span className="font-semibold text-gray-900">{fmt(calculator.slottermijn)}</span>
                     </div>
-                    <div>
-                      <span className="text-gray-400">Slottermijn</span>
-                      <p className="font-medium text-gray-900">{fmt(calculator.slottermijn)}</p>
+                    <div className="border-t border-gray-200 pt-2 flex justify-between">
+                      <span className="font-bold text-gray-900">Maandbedrag</span>
+                      <span className="font-bold text-smartlease-teal">€ {calculator.maandbedrag} p/m</span>
                     </div>
                   </div>
                 </div>
@@ -298,7 +314,6 @@ export function BelMijPage() {
                 </div>
               )}
 
-              {/* Persoonlijke gegevens */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="h-5 w-5 text-smartlease-teal" />
@@ -328,7 +343,6 @@ export function BelMijPage() {
                 </div>
               </div>
 
-              {/* Bedrijfsgegevens */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Building2 className="h-5 w-5 text-smartlease-teal" />
@@ -348,7 +362,6 @@ export function BelMijPage() {
                 </div>
               </div>
 
-              {/* Opmerking */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Wanneer kunnen we je het beste bellen? <span className="text-gray-400 font-normal">(optioneel)</span>
@@ -371,7 +384,6 @@ export function BelMijPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
 
-              {/* Voertuig met foto — 4:3 ratio consistent met rest van de site */}
               {vehicle && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <VehiclePhoto imageUrl={cachedImageUrl} title={vehicleTitle} />
@@ -415,7 +427,7 @@ export function BelMijPage() {
                 </div>
               )}
 
-              {/* Lease berekening — zelfde stijl als OffertePage */}
+              {/* Sidebar berekening — volgorde: Aankoopprijs → Aanbetaling → Financieringsbedrag → Looptijd → Slottermijn → Maandbedrag */}
               {calculator && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
                   <h3 className="flex items-center gap-2 font-bold text-gray-900 text-sm mb-3">
@@ -429,12 +441,18 @@ export function BelMijPage() {
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Looptijd</span>
-                      <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Aanbetaling</span>
                       <span className="font-semibold text-gray-900">{fmt(calculator.aanbetaling)}</span>
+                    </div>
+                    {financieringsbedrag && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Financieringsbedrag</span>
+                        <span className="font-semibold text-gray-900">{fmt(financieringsbedrag)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Looptijd</span>
+                      <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Slottermijn</span>
@@ -448,7 +466,6 @@ export function BelMijPage() {
                 </div>
               )}
 
-              {/* Contact */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
                 <h3 className="font-bold text-gray-900 text-sm">Vragen?</h3>
                 <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
