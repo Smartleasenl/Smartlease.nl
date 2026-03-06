@@ -248,7 +248,7 @@ export function VehicleDetailPage() {
     isSwiping.current = false;
   }, [nextImage, prevImage]);
 
-  // ─── WhatsApp handler met volledige auto-info + directe smartlease.nl link ─
+  // ─── WhatsApp handler ─────────────────────────────────────────────────────
   const handleWhatsApp = () => {
     if (!vehicle) return;
 
@@ -256,12 +256,22 @@ export function VehicleDetailPage() {
       ? calculatorState.maandbedrag
       : berekenMaandprijs(vehicle.verkoopprijs);
 
-    // ✅ Directe smartlease.nl URL (geen Supabase proxy in het bericht)
     const slug = `${vehicle.merk}-${vehicle.model}`
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
     const autoUrl = `https://smartlease.nl/auto/${vehicle.id}/${encodeURIComponent(slug)}`;
+
+    // Volgorde: Aankoopprijs → Aanbetaling → Financieringsbedrag → Looptijd → Slottermijn → Maandbedrag
+    const aanbetaling = calculatorState
+      ? calculatorState.aanbetaling
+      : vehicle.verkoopprijs * 0.15;
+    const slottermijn = calculatorState
+      ? calculatorState.slottermijn
+      : vehicle.verkoopprijs * 0.15;
+    const financieringsbedrag = calculatorState?.financieringsbedrag
+      ?? (vehicle.verkoopprijs - aanbetaling);
+    const looptijd = calculatorState ? calculatorState.looptijd : 72;
 
     const lines = [
       'Hallo, ik heb interesse in de volgende auto:',
@@ -270,13 +280,13 @@ export function VehicleDetailPage() {
       `\u{1F4C5} Bouwjaar: ${vehicle.bouwjaar_year}`,
       `\u{1F4CD} Kilometerstand: ${formatKm(vehicle.kmstand)}`,
       `\u26FD Brandstof: ${vehicle.brandstof}`,
+      '',
       `\u{1F4B0} Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
+      `   \u2514 Aanbetaling: ${formatPrice(aanbetaling)}`,
+      `   \u2514 Financieringsbedrag: ${formatPrice(financieringsbedrag)}`,
+      `   \u2514 Looptijd: ${looptijd} maanden`,
+      `   \u2514 Slottermijn: ${formatPrice(slottermijn)}`,
       ...(maandbedrag > 0 ? [`\u{1F4C6} Maandbedrag: \u20AC${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
-      ...(calculatorState ? [
-        `   \u2514 Looptijd: ${calculatorState.looptijd} maanden`,
-        `   \u2514 Aanbetaling: ${formatPrice(calculatorState.aanbetaling)}`,
-        `   \u2514 Slottermijn: ${formatPrice(calculatorState.slottermijn)}`,
-      ] : []),
       '',
       `\u{1F517} ${autoUrl}`,
       '',
@@ -301,7 +311,6 @@ export function VehicleDetailPage() {
     small_picture: vehicle!.small_picture,
   });
 
-  // Eerste beschikbare afbeelding meegeven als cachedImageUrl
   const getCachedImageUrl = (): string | null => {
     if (images.length > 0) return images[0];
     if (vehicle?.small_picture) return vehicle.small_picture;
