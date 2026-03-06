@@ -81,7 +81,6 @@ export function OffertePage() {
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(price);
 
-  // Bereken financieringsbedrag als het niet in calculator zit
   const financieringsbedrag = calculator?.financieringsbedrag
     ?? (calculator && vehicle.verkoopprijs ? vehicle.verkoopprijs - calculator.aanbetaling : null);
   const aankoopprijs = calculator?.aankoopprijs ?? vehicle.verkoopprijs ?? null;
@@ -141,11 +140,27 @@ export function OffertePage() {
     setLoading(false);
   };
 
-  const VehicleImage = ({ className, iconSize = 'h-8 w-8' }: { className: string; iconSize?: string }) => {
+  // Auto-foto component — 4:3 verhouding, gecentreerd zodat niets wordt afgesneden
+  const VehicleImage = ({ className }: { className: string }) => {
     const [imgError, setImgError] = useState(false);
-    if (imageLoading) return <div className={`${className} bg-gray-100 flex items-center justify-center`}><Loader2 className="h-6 w-6 text-gray-300 animate-spin" /></div>;
-    if (!imageUrl || imgError) return <div className={`${className} bg-gray-100 flex items-center justify-center`}><Car className={`${iconSize} text-gray-300`} /></div>;
-    return <img src={imageUrl} alt={vehicleTitle} className={className} onError={() => setImgError(true)} />;
+    if (imageLoading) return (
+      <div className={`${className} bg-gray-100 flex items-center justify-center`}>
+        <Loader2 className="h-6 w-6 text-gray-300 animate-spin" />
+      </div>
+    );
+    if (!imageUrl || imgError) return (
+      <div className={`${className} bg-gray-100 flex items-center justify-center`}>
+        <Car className="h-10 w-10 text-gray-300" />
+      </div>
+    );
+    return (
+      <img
+        src={imageUrl}
+        alt={vehicleTitle}
+        className={className}
+        onError={() => setImgError(true)}
+      />
+    );
   };
 
   // ── BEVESTIGING ──
@@ -159,12 +174,17 @@ export function OffertePage() {
             <p className="text-green-100">Wij nemen zo snel mogelijk contact met je op met een offerte op maat.</p>
           </div>
           <div className="p-6 sm:p-8 space-y-6">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2"><FileText className="h-5 w-5 text-smartlease-teal" /> Overzicht van je aanvraag</h2>
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <FileText className="h-5 w-5 text-smartlease-teal" /> Overzicht van je aanvraag
+            </h2>
 
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Voertuig</p>
               <div className="flex gap-4">
-                <VehicleImage className="w-24 h-18 object-cover rounded-lg flex-shrink-0" />
+                {/* Bevestiging: kleine 4:3 thumbnail naast tekst */}
+                <div className="w-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '4/3' }}>
+                  <VehicleImage className="w-full h-full object-cover object-center" />
+                </div>
                 <div>
                   <p className="font-bold text-gray-900">{vehicleTitle}</p>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mt-1">
@@ -173,7 +193,9 @@ export function OffertePage() {
                     {vehicle.transmissie && <span>{vehicle.transmissie}</span>}
                     {vehicle.kmstand != null && <span>{vehicle.kmstand.toLocaleString('nl-NL')} km</span>}
                   </div>
-                  {vehicle.verkoopprijs != null && <p className="text-smartlease-teal font-bold mt-1">{formatPrice(vehicle.verkoopprijs)}</p>}
+                  {vehicle.verkoopprijs != null && (
+                    <p className="text-smartlease-teal font-bold mt-1">{formatPrice(vehicle.verkoopprijs)}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -183,14 +205,29 @@ export function OffertePage() {
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Lease berekening</p>
                 <div className="space-y-2">
                   {aankoopprijs && (
-                    <div className="flex justify-between text-sm"><span className="text-gray-500">Aankoopprijs</span><span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span></div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Aankoopprijs</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(aankoopprijs)}</span>
+                    </div>
                   )}
                   {financieringsbedrag && (
-                    <div className="flex justify-between text-sm"><span className="text-gray-500">Financieringsbedrag</span><span className="font-semibold text-gray-900">{formatPrice(financieringsbedrag)}</span></div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Financieringsbedrag</span>
+                      <span className="font-semibold text-gray-900">{formatPrice(financieringsbedrag)}</span>
+                    </div>
                   )}
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Looptijd</span><span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Aanbetaling</span><span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span></div>
-                  <div className="flex justify-between text-sm"><span className="text-gray-500">Slottermijn</span><span className="font-semibold text-gray-900">{formatPrice(calculator.slottermijn)}</span></div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Looptijd</span>
+                    <span className="font-semibold text-gray-900">{calculator.looptijd} maanden</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Aanbetaling</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.aanbetaling)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Slottermijn</span>
+                    <span className="font-semibold text-gray-900">{formatPrice(calculator.slottermijn)}</span>
+                  </div>
                   <div className="border-t border-gray-200 pt-2 flex justify-between">
                     <span className="text-gray-900 font-semibold">Maandbedrag</span>
                     <span className="text-lg font-bold text-smartlease-teal">{formatPrice(calculator.maandbedrag)}/mnd</span>
@@ -208,7 +245,12 @@ export function OffertePage() {
                 <div><span className="text-gray-400">Bedrijf:</span> <span className="text-gray-900 font-medium">{form.bedrijfsnaam}</span></div>
                 {form.kvk_nummer && <div><span className="text-gray-400">KvK:</span> <span className="text-gray-900 font-medium">{form.kvk_nummer}</span></div>}
               </div>
-              {form.bericht && <div className="mt-3 pt-3 border-t border-gray-200"><span className="text-gray-400 text-sm">Opmerking:</span><p className="text-gray-900 text-sm mt-1">{form.bericht}</p></div>}
+              {form.bericht && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <span className="text-gray-400 text-sm">Opmerking:</span>
+                  <p className="text-gray-900 text-sm mt-1">{form.bericht}</p>
+                </div>
+              )}
             </div>
 
             <div className="bg-smartlease-teal/5 rounded-xl p-4 text-sm text-gray-600">
@@ -217,7 +259,10 @@ export function OffertePage() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Link to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`} className="flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition">
+              <Link
+                to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`}
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-smartlease-teal text-white rounded-xl font-semibold hover:bg-smartlease-teal/90 transition"
+              >
                 <ArrowLeft className="h-4 w-4" /> Terug naar auto
               </Link>
               <Link to="/aanbod" className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition">
@@ -236,7 +281,12 @@ export function OffertePage() {
       <nav className="text-sm text-gray-400 mb-6">
         <Link to="/" className="hover:text-smartlease-teal transition">Home</Link><span className="mx-2">›</span>
         <Link to="/aanbod" className="hover:text-smartlease-teal transition">Aanbod</Link><span className="mx-2">›</span>
-        <Link to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`} className="hover:text-smartlease-teal transition">{vehicleTitle}</Link><span className="mx-2">›</span>
+        <Link
+          to={`/auto/${vehicle.id}/${encodeURIComponent(vehicleTitle.toLowerCase().replace(/\s+/g, '-'))}`}
+          className="hover:text-smartlease-teal transition"
+        >
+          {vehicleTitle}
+        </Link><span className="mx-2">›</span>
         <span className="text-gray-700">Offerte aanvragen</span>
       </nav>
 
@@ -322,18 +372,25 @@ export function OffertePage() {
         {/* Sidebar */}
         <div className="lg:col-span-1">
           <div className="space-y-4 sticky top-28">
-            {/* Auto card */}
+
+            {/* Auto card — 4:3 foto volledig zichtbaar, geen afsnijding */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <VehicleImage className="w-full h-44 object-cover" iconSize="h-12 w-12" />
+              <div style={{ aspectRatio: '4/3' }} className="w-full overflow-hidden bg-gray-100">
+                <VehicleImage className="w-full h-full object-cover object-center" />
+              </div>
               <div className="p-4">
-                <h3 className="font-bold text-gray-900">{vehicleTitle}</h3>
+                <h3 className="font-bold text-gray-900 leading-snug">{vehicleTitle}</h3>
                 <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
                   {vehicle.bouwjaar && <span>{vehicle.bouwjaar}</span>}
                   {vehicle.brandstof && <span>• {vehicle.brandstof}</span>}
                   {vehicle.transmissie && <span>• {vehicle.transmissie}</span>}
                 </div>
-                {vehicle.kmstand != null && <p className="text-xs text-gray-400 mt-1">{vehicle.kmstand.toLocaleString('nl-NL')} km</p>}
-                {vehicle.verkoopprijs != null && <p className="text-lg font-bold text-smartlease-teal mt-2">{formatPrice(vehicle.verkoopprijs)}</p>}
+                {vehicle.kmstand != null && (
+                  <p className="text-xs text-gray-400 mt-1">{vehicle.kmstand.toLocaleString('nl-NL')} km</p>
+                )}
+                {vehicle.verkoopprijs != null && (
+                  <p className="text-lg font-bold text-smartlease-teal mt-2">{formatPrice(vehicle.verkoopprijs)}</p>
+                )}
               </div>
             </div>
 
@@ -379,9 +436,15 @@ export function OffertePage() {
             {/* Contact */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
               <h3 className="font-bold text-gray-900 text-sm">Vragen?</h3>
-              <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition"><Phone className="h-4 w-4" /> 085 - 80 08 600</a>
-              <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 hover:text-green-600 transition"><MessageCircle className="h-4 w-4" /> WhatsApp</a>
-              <a href="mailto:info@smartlease.nl" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition"><Mail className="h-4 w-4" /> info@smartlease.nl</a>
+              <a href="tel:0858008600" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
+                <Phone className="h-4 w-4" /> 085 - 80 08 600
+              </a>
+              <a href="https://wa.me/31613669328" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-gray-600 hover:text-green-600 transition">
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
+              <a href="mailto:info@smartlease.nl" className="flex items-center gap-3 text-sm text-gray-600 hover:text-smartlease-teal transition">
+                <Mail className="h-4 w-4" /> info@smartlease.nl
+              </a>
             </div>
           </div>
         </div>
