@@ -72,9 +72,9 @@ export function Footer() {
 
           {/* Kolom 1 – Bedrijfsinfo */}
           <div>
-<img 
-  src={s['site_logo_url'] || '/Smart_lease_Main_Logo__7_.png'} 
-  alt="Smartlease.nl" 
+<img
+  src={s['site_logo_url'] || '/Smart_lease_Main_Logo_(7).png'}
+  alt="Smartlease.nl"
   className="h-12 w-auto mb-5"
 />
             {tagline && (
