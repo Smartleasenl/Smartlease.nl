@@ -32,6 +32,11 @@ import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
 import BlogBeheer from './pages/admin/BlogBeheer';
 
+// Vertel de browser: wij regelen scroll zelf, niet automatisch herstellen
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
