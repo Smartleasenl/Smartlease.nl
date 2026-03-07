@@ -37,7 +37,6 @@ export default function MerkModelPage() {
   const [loading, setLoading] = useState(true);
   const [vehicleCount, setVehicleCount] = useState(0);
 
-  // Slug → display naam omzetting
   const merkDisplay = merkSlug
     ? merkSlug.charAt(0).toUpperCase() + merkSlug.slice(1).replace(/-/g, ' ')
     : '';
@@ -47,9 +46,8 @@ export default function MerkModelPage() {
 
   useEffect(() => {
     if (!merkSlug) return;
-    loadData();
-    // Scroll naar boven bij laden
     window.scrollTo({ top: 0, behavior: 'instant' });
+    loadData();
   }, [merkSlug, modelSlug]);
 
   async function loadData() {
@@ -59,7 +57,6 @@ export default function MerkModelPage() {
   }
 
   async function loadSeoPage() {
-    // Zoek op slug_merk en slug_model
     let query = supabase
       .from('seo_pages')
       .select('*')
@@ -77,21 +74,23 @@ export default function MerkModelPage() {
   }
 
   async function loadVehicles() {
-    // Zoek voertuigen op merk (en optioneel model)
-    // We matchen case-insensitive via ilike
+    // %slug% wildcards zodat 'volkswagen' matcht op 'Volkswagen', 'mercedes-benz' op 'Mercedes-Benz' etc.
+    const merkFilter = `%${(merkSlug || '').replace(/-/g, '%')}%`;
+    const modelFilter = modelSlug ? `%${modelSlug.replace(/-/g, '%')}%` : null;
+
     let query = supabase
       .from('vehicles')
       .select('id, merk, model, uitvoering, bouwjaar, kilometerstand, prijs, lease_prijs, brandstof, transmissie, foto_urls')
       .eq('is_active', true)
-      .ilike('merk', merkSlug?.replace(/-/g, ' ') || '')
+      .ilike('merk', merkFilter)
       .order('prijs', { ascending: true })
       .limit(12);
 
-    if (modelSlug) {
-      query = query.ilike('model', modelSlug.replace(/-/g, ' '));
+    if (modelFilter) {
+      query = query.ilike('model', modelFilter);
     }
 
-    const { data, count } = await query;
+    const { data } = await query;
     setVehicles(data || []);
 
     // Tel totaal aanbod
@@ -99,10 +98,10 @@ export default function MerkModelPage() {
       .from('vehicles')
       .select('*', { count: 'exact', head: true })
       .eq('is_active', true)
-      .ilike('merk', merkSlug?.replace(/-/g, ' ') || '');
+      .ilike('merk', merkFilter);
 
-    if (modelSlug) {
-      countQuery = countQuery.ilike('model', modelSlug.replace(/-/g, ' '));
+    if (modelFilter) {
+      countQuery = countQuery.ilike('model', modelFilter);
     }
 
     const { count: total } = await countQuery;
@@ -114,10 +113,10 @@ export default function MerkModelPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero sectie */}
+
+      {/* Hero */}
       <div className="bg-gradient-to-br from-blue-900 to-blue-700 text-white py-14 px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Breadcrumb */}
           <nav className="text-blue-200 text-sm mb-6 flex items-center gap-1 flex-wrap">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <ChevronRight size={14} />
@@ -137,20 +136,18 @@ export default function MerkModelPage() {
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{pageTitle}</h1>
           <p className="text-blue-100 text-lg max-w-3xl leading-relaxed">{pageIntro}</p>
 
-          {/* Kenmerken */}
           <div className="flex flex-wrap gap-3 mt-6">
-            {['Direct eigenaar', 'Fiscaal voordelig', 'Zonder jaarcijfers', 'Vaste maandprijs'].map((kenmerk) => (
-              <span key={kenmerk} className="bg-blue-800 bg-opacity-60 text-blue-100 text-sm px-3 py-1.5 rounded-full border border-blue-600">
-                ✓ {kenmerk}
+            {['Direct eigenaar', 'Fiscaal voordelig', 'Zonder jaarcijfers', 'Vaste maandprijs'].map((k) => (
+              <span key={k} className="bg-blue-800 bg-opacity-60 text-blue-100 text-sm px-3 py-1.5 rounded-full border border-blue-600">
+                ✓ {k}
               </span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Aanbod sectie */}
+      {/* Aanbod */}
       <div className="max-w-6xl mx-auto px-4 py-10">
-        {/* Resultaten header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
@@ -166,7 +163,6 @@ export default function MerkModelPage() {
           </Link>
         </div>
 
-        {/* Voertuigen grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -202,19 +198,56 @@ export default function MerkModelPage() {
         )}
       </div>
 
-      {/* SEO body tekst */}
+      {/* SEO body tekst — gestyled zonder Tailwind typography plugin */}
       {seoPage?.body_tekst && (
-        <div className="bg-white border-t border-gray-100 py-12">
+        <div className="bg-white border-t border-gray-100 py-14">
           <div className="max-w-4xl mx-auto px-4">
-            <div
-              className="prose prose-gray max-w-none prose-h2:text-xl prose-h2:font-bold prose-h2:text-gray-900 prose-h2:mt-8 prose-h2:mb-3 prose-p:text-gray-600 prose-p:leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: seoPage.body_tekst }}
-            />
+            <div className="seo-body" dangerouslySetInnerHTML={{ __html: seoPage.body_tekst }} />
           </div>
         </div>
       )}
 
-      {/* CTA sectie */}
+      <style>{`
+        .seo-body h2 {
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: #111827;
+          margin-top: 2.25rem;
+          margin-bottom: 0.6rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 2px solid #e5e7eb;
+        }
+        .seo-body h2:first-child {
+          margin-top: 0;
+        }
+        .seo-body p {
+          color: #4b5563;
+          line-height: 1.8;
+          margin-bottom: 1rem;
+          font-size: 0.975rem;
+        }
+        .seo-body ul {
+          list-style: none;
+          padding: 0;
+          margin-bottom: 1rem;
+        }
+        .seo-body ul li {
+          color: #4b5563;
+          padding: 0.3rem 0 0.3rem 1.5rem;
+          position: relative;
+          line-height: 1.6;
+          font-size: 0.975rem;
+        }
+        .seo-body ul li::before {
+          content: '✓';
+          position: absolute;
+          left: 0;
+          color: #2563eb;
+          font-weight: 700;
+        }
+      `}</style>
+
+      {/* CTA */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-12 px-4">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-2xl font-bold mb-3">
@@ -242,7 +275,7 @@ export default function MerkModelPage() {
         </div>
       </div>
 
-      {/* Gerelateerde merken / modellen */}
+      {/* Andere merken */}
       {!modelSlug && (
         <div className="max-w-6xl mx-auto px-4 py-10">
           <h2 className="text-lg font-bold text-gray-900 mb-4">Andere populaire merken</h2>
