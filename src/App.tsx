@@ -32,7 +32,7 @@ import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
 import BlogBeheer from './pages/admin/BlogBeheer';
 
-// Vertel de browser: wij regelen scroll zelf, niet automatisch herstellen
+// Vertel de browser: wij regelen scroll zelf
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
 }
