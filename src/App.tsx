@@ -15,6 +15,7 @@ import ReviewsPage from './pages/ReviewsPage';
 import VeelgesteldeVragenPage from './pages/VeelgesteldeVragenPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetailPage from './pages/BlogDetailPage';
+import MerkModelPage from './pages/MerkModelPage';
 
 // Admin imports
 import LoginPage from './pages/admin/LoginPage';
@@ -93,12 +94,20 @@ function App() {
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
 
+          {/* === SEO merk/model landingspagina's ===
+              BELANGRIJK: staan VÓÓR de /financial-lease/* wildcard,
+              anders vangt InfoPage ze af */}
+          <Route path="/financial-lease/:merk/:model" element={<MerkModelPage />} />
+          <Route path="/financial-lease/:merk" element={<MerkModelPage />} />
+
           {/* Specifieke redirects VÓÓR de meer-informatie/* wildcard */}
           <Route path="/meer-informatie/veelgestelde-vragen" element={<Navigate to="/veelgestelde-vragen" replace />} />
           <Route path="/meer-informatie/reviews" element={<Navigate to="/reviews" replace />} />
           <Route path="/meer-informatie/financial-lease-blog" element={<Navigate to="/blog" replace />} />
 
-          {/* Wildcard InfoPage routes */}
+          {/* Wildcard InfoPage routes
+              /financial-lease/* vangt overige informatieve pagina's op
+              die niet matchen met /:merk of /:merk/:model */}
           <Route path="/financial-lease/*" element={<InfoPage />} />
           <Route path="/meer-informatie/*" element={<InfoPage />} />
 
