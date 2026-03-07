@@ -38,6 +38,24 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
 }
 
+// Bekende InfoPage slugs onder /financial-lease/
+// Deze staan ALTIJD vóór de /:merk route zodat ze nooit per
+// ongeluk als automerk worden herkend
+const INFO_SLUGS = [
+  'wat-is-financial-lease',
+  'voor-ondernemers',
+  'zzp-lease',
+  'starter-lease',
+  'operational-lease',
+  'occasion-lease',
+  'equipment-lease',
+  'motor-leasen',
+  'import-lease',
+  'elektrisch-leasen',
+  'goedkoop-leasen',
+  'voor-het-eerst-leasen',
+];
+
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -94,21 +112,32 @@ function App() {
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
 
-          {/* === SEO merk/model landingspagina's ===
-              BELANGRIJK: staan VÓÓR de /financial-lease/* wildcard,
-              anders vangt InfoPage ze af */}
+          {/* ── STAP 1: Bekende InfoPage slugs EERST ──
+              bijv. /financial-lease/wat-is-financial-lease → InfoPage ✅
+              Staan vóór /:merk zodat ze nooit als automerk worden herkend */}
+          {INFO_SLUGS.map((slug) => (
+            <Route
+              key={slug}
+              path={`/financial-lease/${slug}`}
+              element={<InfoPage />}
+            />
+          ))}
+
+          {/* ── STAP 2: SEO merk/model landingspagina's ──
+              bijv. /financial-lease/volkswagen/golf → MerkModelPage ✅
+              bijv. /financial-lease/volkswagen      → MerkModelPage ✅ */}
           <Route path="/financial-lease/:merk/:model" element={<MerkModelPage />} />
           <Route path="/financial-lease/:merk" element={<MerkModelPage />} />
+
+          {/* ── STAP 3: Wildcard fallback voor overige /financial-lease/* ── */}
+          <Route path="/financial-lease/*" element={<InfoPage />} />
 
           {/* Specifieke redirects VÓÓR de meer-informatie/* wildcard */}
           <Route path="/meer-informatie/veelgestelde-vragen" element={<Navigate to="/veelgestelde-vragen" replace />} />
           <Route path="/meer-informatie/reviews" element={<Navigate to="/reviews" replace />} />
           <Route path="/meer-informatie/financial-lease-blog" element={<Navigate to="/blog" replace />} />
 
-          {/* Wildcard InfoPage routes
-              /financial-lease/* vangt overige informatieve pagina's op
-              die niet matchen met /:merk of /:merk/:model */}
-          <Route path="/financial-lease/*" element={<InfoPage />} />
+          {/* Wildcard InfoPage voor meer-informatie */}
           <Route path="/meer-informatie/*" element={<InfoPage />} />
 
           {/* Dedicated pages */}
