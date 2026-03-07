@@ -8,7 +8,6 @@ import {
   ChevronRight, ChevronDown, Check,
   Users, Truck, Recycle, Zap, LayoutGrid,
 } from 'lucide-react';
-import { saveScrollPosition } from '../utils/scrollStore';
 
 // ── Aanbod subcategorieën (zonder Motoren) ──
 const AANBOD_SUB = [
@@ -61,7 +60,6 @@ export function Header() {
   useEffect(() => {
     if (mobileMenuOpen) {
       const scrollY = window.scrollY;
-      saveScrollPosition(location.pathname + location.search, scrollY);
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollY}px`;
