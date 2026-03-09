@@ -10,10 +10,9 @@ export default async (req: Request, context: Context) => {
 
   const vehicleId = match[1];
 
-  // Haal voertuigdata op uit Supabase
-  let vehicle: any = null;
-  try {
-    const res = await fetch(
+  // Haal voertuigdata parallel op met de HTML
+  const [vehicleRes, htmlRes] = await Promise.all([
+    fetch(
       `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${vehicleId}&select=id,merk,model,uitvoering,verkoopprijs,bouwjaar_year,kmstand,og_image_url&is_active=eq.true`,
       {
         headers: {
@@ -21,15 +20,18 @@ export default async (req: Request, context: Context) => {
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
       }
-    );
-    const data = await res.json();
+    ),
+    // Haal index.html op via rewrite naar de root - bypast de redirect chain
+    context.rewrite("/index.html"),
+  ]);
+
+  let html = await htmlRes.text();
+  
+  let vehicle: any = null;
+  try {
+    const data = await vehicleRes.json();
     vehicle = data?.[0] ?? null;
   } catch (_) {}
-
-  // Haal de index.html op via absolute URL (werkt ook met SPA redirect)
-  const origin = url.origin;
-  const htmlRes = await fetch(`${origin}/index.html`);
-  let html = await htmlRes.text();
 
   if (!vehicle) {
     return new Response(html, {
