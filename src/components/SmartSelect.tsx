@@ -51,8 +51,8 @@ export function SmartSelect({
         disabled={disabled}
         onClick={() => !disabled && setOpen((o) => !o)}
         className={[
-          'group relative w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border text-left',
-          'transition-all duration-200 outline-none',
+          'group relative w-full flex items-center gap-2.5 px-4 rounded-xl border text-left',
+          'transition-all duration-200 outline-none h-[50px]',
           'bg-white',
           disabled
             ? 'opacity-50 cursor-not-allowed border-gray-100'
@@ -70,23 +70,20 @@ export function SmartSelect({
           </span>
         )}
 
-        {/* Label area */}
-        <span className="flex-1 min-w-0 relative h-5">
-          {/* Floating placeholder */}
+        {/* Label + value stacked, fixed height, no layout shift */}
+        <span className="flex-1 min-w-0 flex flex-col justify-center gap-0.5 overflow-hidden">
           <span
             className={[
-              'absolute left-0 transition-all duration-200 leading-none pointer-events-none whitespace-nowrap',
+              'leading-none transition-all duration-200 pointer-events-none whitespace-nowrap',
               isActive || open
-                ? 'top-[-18px] text-[10px] font-semibold tracking-widest uppercase text-smartlease-teal'
-                : 'top-1/2 -translate-y-1/2 text-sm font-medium text-gray-400',
+                ? 'text-[10px] font-semibold tracking-widest uppercase text-smartlease-teal'
+                : 'text-sm font-medium text-gray-400',
             ].join(' ')}
           >
             {placeholder}
           </span>
-
-          {/* Selected value */}
           {isActive && (
-            <span className="absolute left-0 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-900 truncate max-w-full">
+            <span className="text-sm font-semibold text-gray-900 truncate leading-tight">
               {selectedLabel}
             </span>
           )}
