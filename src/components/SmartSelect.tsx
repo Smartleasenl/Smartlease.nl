@@ -146,7 +146,7 @@ export function SmartSelect({
         ...panelStyle,
         animation: 'smartSelectOpen 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      className="bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden"
+      className="bg-white rounded-2xl border border-gray-100 shadow-2xl flex flex-col"
     >
       <style>{`
         @keyframes smartSelectOpen {
@@ -172,7 +172,7 @@ export function SmartSelect({
         </div>
       )}
 
-      <ul className="overflow-y-auto py-1.5" style={{ maxHeight: 'calc(100% - 56px)' }} role="listbox">
+      <ul className="overflow-y-auto py-1.5 flex-1 min-h-0" role="listbox">
         {emptyOption && !query.trim() && <OptionRow opt={emptyOption} />}
 
         {popularOptions.length > 0 && (
