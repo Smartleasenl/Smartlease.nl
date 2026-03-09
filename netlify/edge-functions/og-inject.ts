@@ -5,12 +5,12 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export default async (req: Request, context: Context) => {
   const url = new URL(req.url);
-
   const match = url.pathname.match(/^\/auto\/(\d+)/);
   if (!match) return context.next();
 
   const vehicleId = match[1];
 
+  // Haal voertuigdata op uit Supabase
   let vehicle: any = null;
   try {
     const res = await fetch(
@@ -26,12 +26,20 @@ export default async (req: Request, context: Context) => {
     vehicle = data?.[0] ?? null;
   } catch (_) {}
 
-  const response = await context.next();
-  const html = await response.text();
+  // Haal de index.html op via absolute URL (werkt ook met SPA redirect)
+  const origin = url.origin;
+  const htmlRes = await fetch(`${origin}/index.html`);
+  let html = await htmlRes.text();
 
-  if (!vehicle) return new Response(html, response);
+  if (!vehicle) {
+    return new Response(html, {
+      status: 200,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
 
   const title = `${vehicle.merk} ${vehicle.model}${vehicle.uitvoering ? " – " + vehicle.uitvoering : ""} | Smartlease.nl`;
+
   const r = 8.99 / 100 / 12;
   const months = 72;
   const maandprijs = vehicle.verkoopprijs
@@ -49,18 +57,15 @@ export default async (req: Request, context: Context) => {
   ].filter(Boolean).join(" · ");
 
   const imageUrl = vehicle.og_image_url ||
-    `${SUPABASE_URL}/functions/v1/og-image?id=${vehicleId}&s=1280&n=1`;
+    `${SUPABASE_URL}/storage/v1/object/public/vehicle-images/thumbnails/${vehicleId}.jpg`;
 
-  const e = (s: string) => s
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  const e = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-  // Verwijder ALLE bestaande og: en twitter: meta tags (robuust patroon)
-  let newHtml = html.replace(/<meta\s[^>]*(property="og:[^"]*"|name="twitter:[^"]*")[^>]*\/?>/gi, "");
+  // Verwijder alle bestaande og: en twitter: tags
+  html = html.replace(/<meta\s[^>]*(property="og:[^"]*"|name="twitter:[^"]*")[^>]*\/?>/gi, "");
 
-  // Injecteer nieuwe tags direct na <head>
+  // Injecteer nieuwe OG tags direct na <head>
   const injection = `
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Smartlease.nl" />
@@ -75,11 +80,11 @@ export default async (req: Request, context: Context) => {
     <meta name="twitter:description" content="${e(description)}" />
     <meta name="twitter:image" content="${e(imageUrl)}" />`;
 
-  newHtml = newHtml.replace("<head>", `<head>${injection}`);
+  html = html.replace("<head>", `<head>${injection}`);
 
-  return new Response(newHtml, {
-    status: response.status,
-    headers: response.headers,
+  return new Response(html, {
+    status: 200,
+    headers: { "content-type": "text/html; charset=utf-8" },
   });
 };
 
