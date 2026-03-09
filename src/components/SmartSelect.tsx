@@ -150,8 +150,8 @@ export function SmartSelect({
       {/* Dropdown panel */}
       {open && !disabled && (
         <div
-          className="absolute left-0 right-0 z-50 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-200/80 overflow-hidden"
-          style={{ animation: 'smartSelectOpen 0.18s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          className="absolute left-0 z-50 mt-2 bg-white rounded-2xl border border-gray-100 shadow-2xl shadow-gray-200/80 overflow-hidden"
+          style={{ animation: 'smartSelectOpen 0.18s cubic-bezier(0.16, 1, 0.3, 1)', minWidth: '280px', width: 'max-content', maxWidth: '360px' }}
         >
           <style>{`
             @keyframes smartSelectOpen {
@@ -178,7 +178,7 @@ export function SmartSelect({
             </div>
           )}
 
-          <ul className="max-h-80 overflow-y-auto py-1.5" role="listbox">
+          <ul className="max-h-[420px] overflow-y-auto py-1.5" role="listbox">
             {/* "Alle ..." optie */}
             {emptyOption && !query.trim() && <OptionRow opt={emptyOption} />}
 
