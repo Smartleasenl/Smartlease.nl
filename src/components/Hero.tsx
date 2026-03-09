@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X } from 'lucide-react';
+import { Search, X, Car, Layers, Euro } from 'lucide-react';
 import { vehicleApi } from '../services/api';
 import { supabase } from '../lib/supabase';
 import type { FiltersResponse, ModelOption } from '../types/vehicle';
+import { SmartSelect } from './SmartSelect';
 
 interface SiteSettings {
   [key: string]: string;
 }
 
-// ✅ FIX: 'loaded' state toegevoegd om flash-of-old-content te voorkomen
 function useSiteSettings() {
   const [settings, setSettings] = useState<SiteSettings>({});
   const [loaded, setLoaded] = useState(false);
@@ -77,7 +77,6 @@ interface Suggestion {
 
 export function Hero() {
   const navigate = useNavigate();
-  // ✅ FIX: destructure { settings, loaded } in plaats van direct return
   const { settings: siteSettings, loaded: settingsLoaded } = useSiteSettings();
 
   const [filters, setFilters] = useState<FiltersResponse | null>(null);
@@ -117,7 +116,6 @@ export function Hero() {
     return result;
   };
 
-  // Suggesties alleen op basis van searchQuery — ONAFHANKELIJK van dropdowns
   useEffect(() => {
     const q = searchQuery.trim();
     if (!q || !filters) {
@@ -158,20 +156,10 @@ export function Hero() {
           });
         });
         if (results.length === 0) {
-          results.push({
-            type: 'merk',
-            merk: matchedMerk,
-            label: matchedMerk,
-            sublabel: 'Alle modellen',
-          });
+          results.push({ type: 'merk', merk: matchedMerk, label: matchedMerk, sublabel: 'Alle modellen' });
         }
       } else if (matchedMerk && !modelQuery) {
-        results.push({
-          type: 'merk',
-          merk: matchedMerk,
-          label: matchedMerk,
-          sublabel: 'Alle modellen',
-        });
+        results.push({ type: 'merk', merk: matchedMerk, label: matchedMerk, sublabel: 'Alle modellen' });
         const merkModels = await loadModels(matchedMerk);
         merkModels.slice(0, 5).forEach((m) => {
           results.push({
@@ -183,16 +171,9 @@ export function Hero() {
           });
         });
       } else {
-        const matchedMerken = sortedMerken.filter((m) =>
-          m.toLowerCase().includes(qLower)
-        );
+        const matchedMerken = sortedMerken.filter((m) => m.toLowerCase().includes(qLower));
         matchedMerken.slice(0, 6).forEach((merk) => {
-          results.push({
-            type: 'merk',
-            merk,
-            label: merk,
-            sublabel: 'Alle merken',
-          });
+          results.push({ type: 'merk', merk, label: merk, sublabel: 'Alle merken' });
         });
       }
 
@@ -204,38 +185,29 @@ export function Hero() {
     buildSuggestions();
   }, [searchQuery, filters]);
 
-  // Suggestie klik: vult zoekbalk in maar raakt dropdowns NIET aan
   const handleSuggestionClick = (suggestion: Suggestion) => {
     setShowSuggestions(false);
     setSearchQuery(suggestion.label);
     if (suggestion.type === 'merk') {
-      // Navigeer direct bij merk-selectie vanuit zoekbalk
       navigate(`/aanbod?merk=${encodeURIComponent(suggestion.merk)}`);
     } else {
-      navigate(
-        `/aanbod?merk=${encodeURIComponent(suggestion.merk)}&model=${encodeURIComponent(suggestion.model || '')}`
-      );
+      navigate(`/aanbod?merk=${encodeURIComponent(suggestion.merk)}&model=${encodeURIComponent(suggestion.model || '')}`);
     }
   };
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-
-    // Dropdown heeft prioriteit; anders zoekbalk
     if (selectedMerk) {
       params.append('merk', selectedMerk);
     } else if (searchQuery.trim()) {
       params.append('q', searchQuery.trim());
     }
-
     if (selectedModel) params.append('model', selectedModel);
-
     if (selectedBudget) {
       const [min, max] = selectedBudget.split('-');
       if (min) params.append('budget_min', min);
       if (max) params.append('budget_max', max);
     }
-
     navigate(`/aanbod?${params.toString()}`);
   };
 
@@ -262,10 +234,8 @@ export function Hero() {
     setSearchQuery('');
     setSuggestions([]);
     setShowSuggestions(false);
-    // Zoekbalk clearen reset NIET de dropdowns
   };
 
-  // Merk dropdown: onafhankelijk van zoekbalk
   const handleMerkChange = (merk: string) => {
     setSelectedMerk(merk);
     setSelectedModel('');
@@ -274,12 +244,35 @@ export function Hero() {
     } else {
       setModels([]);
     }
-    // searchQuery wordt hier NIET aangeraakt
   };
 
   const handleBrandClick = (brand: string) => {
     navigate(`/aanbod?merk=${encodeURIComponent(brand)}`);
   };
+
+  // Build option arrays for SmartSelect
+  const merkOptions = [
+    { value: '', label: 'Alle merken' },
+    ...(filters?.merken.map((m) => ({ value: m, label: m })) ?? []),
+  ];
+
+  const modelOptions = [
+    { value: '', label: 'Alle modellen' },
+    ...models.map((m) => ({ value: m.model, label: `${m.model} (${m.count})` })),
+  ];
+
+  const budgetOptions = [
+    { value: '', label: 'Alle budgetten' },
+    { value: '0-99', label: '€0 – €99 / maand' },
+    { value: '100-199', label: '€100 – €199 / maand' },
+    { value: '200-299', label: '€200 – €299 / maand' },
+    { value: '300-399', label: '€300 – €399 / maand' },
+    { value: '400-499', label: '€400 – €499 / maand' },
+    { value: '500-699', label: '€500 – €699 / maand' },
+    { value: '700-899', label: '€700 – €899 / maand' },
+    { value: '800-999', label: '€800 – €999 / maand' },
+    { value: '1000-', label: '€1000+ / maand' },
+  ];
 
   return (
     <div className="relative bg-gradient-to-b from-[#e8f6f5] via-[#f0faf9] to-white overflow-hidden">
@@ -288,7 +281,6 @@ export function Hero() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 lg:py-16">
         <div className="max-w-4xl mx-auto text-center">
 
-          {/* Titel — ✅ FIX: opacity-0 tijdens laden voorkomt flash van fallback tekst */}
           <h1
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900 transition-opacity duration-200"
             style={{ opacity: settingsLoaded ? 1 : 0 }}
@@ -322,8 +314,8 @@ export function Hero() {
           {/* Search form */}
           <div className="bg-white rounded-2xl p-4 md:p-5 shadow-xl border border-gray-100">
 
-            {/* Zoekbalk — volledig onafhankelijk van dropdowns */}
-            <div className="relative mb-3" ref={searchRef}>
+            {/* Zoekbalk */}
+            <div className="relative mb-4" ref={searchRef}>
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
               <input
                 type="text"
@@ -332,7 +324,7 @@ export function Hero() {
                 onKeyDown={handleKeyDown}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                 placeholder="Zoek op merk of model, bijv. Audi Q5..."
-                className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all"
+                className="w-full pl-11 pr-10 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all"
               />
               {searchQuery && (
                 <button
@@ -343,7 +335,6 @@ export function Hero() {
                 </button>
               )}
 
-              {/* Suggesties dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden text-left">
                   {suggestions.map((suggestion, i) => (
@@ -357,18 +348,12 @@ export function Hero() {
                     >
                       <Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <span
-                          className={`text-sm font-medium ${
-                            i === activeSuggestion ? 'text-smartlease-teal' : 'text-gray-800'
-                          }`}
-                        >
+                        <span className={`text-sm font-medium ${i === activeSuggestion ? 'text-smartlease-teal' : 'text-gray-800'}`}>
                           {suggestion.label}
                         </span>
                       </div>
                       {suggestion.sublabel && (
-                        <span className="text-xs text-gray-400 flex-shrink-0">
-                          {suggestion.sublabel}
-                        </span>
+                        <span className="text-xs text-gray-400 flex-shrink-0">{suggestion.sublabel}</span>
                       )}
                     </button>
                   ))}
@@ -376,53 +361,36 @@ export function Hero() {
               )}
             </div>
 
-            {/* Dropdowns + zoekknop — onafhankelijk van zoekbalk */}
+            {/* ✅ SmartSelect dropdowns — vervangen native <select> */}
             <div className="flex flex-col md:flex-row items-stretch gap-3">
-              <select
+              <SmartSelect
                 value={selectedMerk}
-                onChange={(e) => handleMerkChange(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-white font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all appearance-none cursor-pointer hover:border-gray-400"
-              >
-                <option value="">Alle merken</option>
-                {filters?.merken.map((merk) => (
-                  <option key={merk} value={merk}>{merk}</option>
-                ))}
-              </select>
+                onChange={handleMerkChange}
+                options={merkOptions}
+                placeholder="Merk"
+                icon={<Car className="h-4 w-4" />}
+              />
 
-              <select
+              <SmartSelect
                 value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
+                onChange={setSelectedModel}
+                options={modelOptions}
+                placeholder="Model"
                 disabled={!selectedMerk || models.length === 0}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-white font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all appearance-none cursor-pointer hover:border-gray-400 disabled:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <option value="">Alle modellen</option>
-                {models.map((model) => (
-                  <option key={model.model} value={model.model}>
-                    {model.model} ({model.count})
-                  </option>
-                ))}
-              </select>
+                icon={<Layers className="h-4 w-4" />}
+              />
 
-              <select
+              <SmartSelect
                 value={selectedBudget}
-                onChange={(e) => setSelectedBudget(e.target.value)}
-                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-900 bg-white font-medium focus:ring-2 focus:ring-smartlease-teal focus:border-smartlease-teal transition-all appearance-none cursor-pointer hover:border-gray-400"
-              >
-                <option value="">Maandbudget</option>
-                <option value="0-99">€0 - €99 p/m</option>
-                <option value="100-199">€100 - €199 p/m</option>
-                <option value="200-299">€200 - €299 p/m</option>
-                <option value="300-399">€300 - €399 p/m</option>
-                <option value="400-499">€400 - €499 p/m</option>
-                <option value="500-699">€500 - €699 p/m</option>
-                <option value="700-899">€700 - €899 p/m</option>
-                <option value="800-999">€800 - €999 p/m</option>
-                <option value="1000-">€1000+ p/m</option>
-              </select>
+                onChange={setSelectedBudget}
+                options={budgetOptions}
+                placeholder="Maandbudget"
+                icon={<Euro className="h-4 w-4" />}
+              />
 
               <button
                 onClick={handleSearch}
-                className="bg-smartlease-teal hover:bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg whitespace-nowrap"
+                className="bg-smartlease-teal hover:bg-teal-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center space-x-2 transition-all shadow-md hover:shadow-lg whitespace-nowrap"
               >
                 <Search className="h-5 w-5" />
                 <span>Vinden</span>
