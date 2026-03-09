@@ -5,18 +5,16 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 export default async (req: Request, context: Context) => {
   const url = new URL(req.url);
-  
-  // Extract vehicle ID from path: /auto/3851/bmw-...
+
   const match = url.pathname.match(/^\/auto\/(\d+)/);
   if (!match) return context.next();
-  
+
   const vehicleId = match[1];
 
-  // Fetch vehicle data from Supabase
   let vehicle: any = null;
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${vehicleId}&select=merk,model,uitvoering,verkoopprijs,bouwjaar_year,kmstand,og_image_url,small_picture&is_active=eq.true`,
+      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${vehicleId}&select=id,merk,model,uitvoering,verkoopprijs,bouwjaar_year,kmstand,og_image_url&is_active=eq.true`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -28,72 +26,62 @@ export default async (req: Request, context: Context) => {
     vehicle = data?.[0] ?? null;
   } catch (_) {}
 
-  // Get the original HTML response
   const response = await context.next();
   const html = await response.text();
 
   if (!vehicle) return new Response(html, response);
 
-  // Build OG values
   const title = `${vehicle.merk} ${vehicle.model}${vehicle.uitvoering ? " – " + vehicle.uitvoering : ""} | Smartlease.nl`;
+  const r = 8.99 / 100 / 12;
+  const months = 72;
   const maandprijs = vehicle.verkoopprijs
     ? Math.round(
-        ((vehicle.verkoopprijs * 0.85 * (8.99 / 100 / 12) * Math.pow(1 + 8.99 / 100 / 12, 72) -
-          vehicle.verkoopprijs * 0.10 * (8.99 / 100 / 12)) /
-          (Math.pow(1 + 8.99 / 100 / 12, 72) - 1))
+        (vehicle.verkoopprijs * 0.85 * r * Math.pow(1 + r, months) -
+          vehicle.verkoopprijs * 0.1 * r) /
+          (Math.pow(1 + r, months) - 1)
       )
     : null;
+
   const description = [
     vehicle.bouwjaar_year && `Bouwjaar ${vehicle.bouwjaar_year}`,
     vehicle.kmstand && `${vehicle.kmstand.toLocaleString("nl-NL")} km`,
     maandprijs && `Vanaf €${maandprijs},- p/m`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  ].filter(Boolean).join(" · ");
 
-  // Use og_image_url (Supabase Storage) or fall back to og-image edge function
-  const imageUrl =
-    vehicle.og_image_url ||
-    `${SUPABASE_URL}/functions/v1/og-image?id=${vehicle.id ?? vehicleId}&s=1280&n=1`;
+  const imageUrl = vehicle.og_image_url ||
+    `${SUPABASE_URL}/functions/v1/og-image?id=${vehicleId}&s=1280&n=1`;
 
-  // Inject OG tags by replacing placeholder tags in the HTML
-  const ogTags = `
-    <meta property="og:title" content="${escapeHtml(title)}" />
-    <meta property="og:description" content="${escapeHtml(description)}" />
-    <meta property="og:image" content="${escapeHtml(imageUrl)}" />
+  const e = (s: string) => s
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Verwijder ALLE bestaande og: en twitter: meta tags (robuust patroon)
+  let newHtml = html.replace(/<meta\s[^>]*(property="og:[^"]*"|name="twitter:[^"]*")[^>]*\/?>/gi, "");
+
+  // Injecteer nieuwe tags direct na <head>
+  const injection = `
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Smartlease.nl" />
+    <meta property="og:title" content="${e(title)}" />
+    <meta property="og:description" content="${e(description)}" />
+    <meta property="og:image" content="${e(imageUrl)}" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:url" content="${escapeHtml(req.url)}" />
-    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${e(req.url)}" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`;
+    <meta name="twitter:title" content="${e(title)}" />
+    <meta name="twitter:description" content="${e(description)}" />
+    <meta name="twitter:image" content="${e(imageUrl)}" />`;
 
-  // Replace existing og tags or inject before </head>
-  let newHtml = html
-    .replace(/<meta property="og:title"[^>]*>/g, "")
-    .replace(/<meta property="og:description"[^>]*>/g, "")
-    .replace(/<meta property="og:image"[^>]*>/g, "")
-    .replace(/<meta property="og:image:width"[^>]*>/g, "")
-    .replace(/<meta property="og:image:height"[^>]*>/g, "")
-    .replace(/<meta property="og:url"[^>]*>/g, "")
-    .replace(/<meta property="og:type"[^>]*>/g, "")
-    .replace(/<meta name="twitter:card"[^>]*>/g, "")
-    .replace(/<meta name="twitter:image"[^>]*>/g, "")
-    .replace("</head>", `${ogTags}\n  </head>`);
+  newHtml = newHtml.replace("<head>", `<head>${injection}`);
 
   return new Response(newHtml, {
     status: response.status,
     headers: response.headers,
   });
 };
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
 
 export const config: Config = {
   path: "/auto/*",
