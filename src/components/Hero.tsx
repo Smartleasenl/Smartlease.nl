@@ -250,6 +250,8 @@ export function Hero() {
     navigate(`/aanbod?merk=${encodeURIComponent(brand)}`);
   };
 
+  const POPULAR_MERKEN = ['Audi', 'BMW', 'Mercedes-Benz', 'Volkswagen', 'Volvo'];
+
   // Build option arrays for SmartSelect
   const merkOptions = [
     { value: '', label: 'Alle merken' },
@@ -369,6 +371,8 @@ export function Hero() {
                 options={merkOptions}
                 placeholder="Merk"
                 icon={<Car className="h-4 w-4" />}
+                popularValues={POPULAR_MERKEN}
+                searchable
               />
 
               <SmartSelect
@@ -378,6 +382,7 @@ export function Hero() {
                 placeholder="Model"
                 disabled={!selectedMerk || models.length === 0}
                 icon={<Layers className="h-4 w-4" />}
+                searchable
               />
 
               <SmartSelect
