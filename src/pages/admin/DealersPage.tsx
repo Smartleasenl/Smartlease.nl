@@ -50,7 +50,8 @@ export default function DealersPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from('dealer_overview')
-      .select('*');
+      .select('*')
+      .limit(5000);
 
     if (error) {
       console.error('Error fetching dealers:', error);
@@ -179,8 +180,8 @@ export default function DealersPage() {
           </div>
           <p className="text-sm text-gray-500">
             {filtered.length === dealers.length
-              ? `${dealers.length} dealers`
-              : `${filtered.length} van ${dealers.length} dealers`}
+              ? `${dealers.length.toLocaleString('nl-NL')} dealers`
+              : `${filtered.length.toLocaleString('nl-NL')} van ${dealers.length.toLocaleString('nl-NL')} dealers`}
           </p>
         </div>
 
@@ -280,7 +281,7 @@ export default function DealersPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
                 <p className="text-xs text-gray-500">
-                  {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} van {filtered.length}
+                  {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} van {filtered.length.toLocaleString('nl-NL')}
                 </p>
                 <div className="flex items-center gap-1.5">
                   <button
