@@ -6,10 +6,9 @@ import {
   Phone, MessageCircle, Star, Menu, X,
   Car, Calculator, Sparkles, FileText, Info,
   ChevronRight, ChevronDown, Check,
-  Users, Truck, Recycle, Zap, LayoutGrid,
+  Users, Truck, Recycle, Zap, LayoutGrid, GitCompare,
 } from 'lucide-react';
 
-// ── Aanbod subcategorieën (zonder Motoren) ──
 const AANBOD_SUB = [
   { label: "Alle auto's",  to: '/aanbod',                          icon: LayoutGrid },
   { label: 'Personenauto',  to: '/aanbod?bodytype=personenauto',   icon: Users      },
@@ -20,11 +19,12 @@ const AANBOD_SUB = [
 ];
 
 const NAV_ITEMS = [
-  { to: '/aanbod',          label: 'Aanbod',          desc: "Bekijk 60.000+ auto's",      icon: Car,      hasDropdown: true, dropdownKey: 'aanbod'           },
-  { to: '/calculator',      label: 'Calculator',       desc: 'Bereken je maandbedrag',     icon: Calculator                                                   },
-  { to: '/keuzehulp',       label: 'AI Keuzehulp',     desc: 'Vind je perfecte auto',      icon: Sparkles                                                     },
-  { to: '/financial-lease', label: 'Financial Lease',  desc: 'Alles over financial lease', icon: FileText, hasDropdown: true, dropdownKey: 'financial-lease', parentSlug: 'financial-lease' },
-  { to: '/meer-informatie', label: 'Meer informatie',  desc: 'Veelgestelde vragen',        icon: Info,     hasDropdown: true, dropdownKey: 'meer-informatie', parentSlug: 'meer-informatie' },
+  { to: '/aanbod',                label: 'Aanbod',          desc: "Bekijk 60.000+ auto's",      icon: Car,         hasDropdown: true, dropdownKey: 'aanbod'           },
+  { to: '/calculator',            label: 'Calculator',       desc: 'Bereken je maandbedrag',     icon: Calculator                                                      },
+  { to: '/keuzehulp',             label: 'AI Keuzehulp',     desc: 'Vind je perfecte auto',      icon: Sparkles                                                        },
+  { to: '/offerte-vergelijker',   label: 'Vergelijker',      desc: 'Bespaar op je lease',        icon: GitCompare                                                      },
+  { to: '/financial-lease',       label: 'Financial Lease',  desc: 'Alles over financial lease', icon: FileText,    hasDropdown: true, dropdownKey: 'financial-lease', parentSlug: 'financial-lease' },
+  { to: '/meer-informatie',       label: 'Meer informatie',  desc: 'Veelgestelde vragen',        icon: Info,        hasDropdown: true, dropdownKey: 'meer-informatie', parentSlug: 'meer-informatie' },
 ];
 
 const USP_ITEMS = ['Investeer in je eigen bedrijf', 'Direct eigenaar van de auto', 'Veel fiscale voordelen'];
@@ -54,9 +54,6 @@ export function Header() {
     return SLUG_OVERRIDES[slug] ?? `/${slug}`;
   }
 
-  // ── Body scroll lock (inclusief iOS Safari fix) ──
-  // Sla scroll positie op VÓÓR position:fixed wordt gezet —
-  // daarna is window.scrollY altijd 0.
   useEffect(() => {
     if (mobileMenuOpen) {
       const scrollY = window.scrollY;
@@ -130,7 +127,7 @@ export function Header() {
         </div>
       </div>
 
-      {/* Sticky header — z-50 */}
+      {/* Sticky header */}
       <header className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="relative flex items-center justify-between h-16 md:h-20">
@@ -158,7 +155,7 @@ export function Header() {
             </div>
 
             {/* Desktop nav */}
-            <nav ref={dropdownRef} className="hidden md:flex items-center space-x-8">
+            <nav ref={dropdownRef} className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {NAV_ITEMS.map((item) => {
                 const isOpen = openDropdown === item.dropdownKey;
 
@@ -251,6 +248,24 @@ export function Header() {
                         </div>
                       )}
                     </div>
+                  );
+                }
+
+                // Vergelijker — met teal badge accent
+                if (item.to === '/offerte-vergelijker') {
+                  const isActive = location.pathname === item.to;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`relative font-semibold transition-colors flex items-center gap-1.5 ${isActive ? 'text-smartlease-teal' : 'text-gray-700 hover:text-smartlease-teal'}`}
+                    >
+                      {item.label}
+                      <span className="bg-smartlease-teal text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                        Nieuw
+                      </span>
+                      {isActive && <span className="absolute -bottom-[1.35rem] left-0 right-0 h-0.5 bg-smartlease-teal rounded-full" />}
+                    </Link>
                   );
                 }
 
@@ -401,6 +416,7 @@ export function Header() {
               }
 
               const isActive = location.pathname === item.to;
+              const isVergelijker = item.to === '/offerte-vergelijker';
               return (
                 <Link key={item.to} to={item.to} onClick={() => setMobileMenuOpen(false)}
                   className={`group flex items-center space-x-4 px-4 py-4 rounded-2xl mb-2 transition-all duration-200 ${isActive ? 'bg-smartlease-teal/10' : 'hover:bg-gray-50 active:bg-gray-100'}`}
@@ -414,7 +430,14 @@ export function Header() {
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-base ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>{item.label}</p>
+                    <p className={`font-bold text-base flex items-center gap-2 ${isActive ? 'text-smartlease-teal' : 'text-gray-900'}`}>
+                      {item.label}
+                      {isVergelijker && (
+                        <span className="bg-smartlease-teal text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                          Nieuw
+                        </span>
+                      )}
+                    </p>
                     <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
                   </div>
                   <ChevronRight className={`h-4 w-4 flex-shrink-0 transition-colors ${isActive ? 'text-smartlease-teal' : 'text-gray-300 group-hover:text-smartlease-teal'}`} />
