@@ -83,7 +83,8 @@ export function SmartSelect(props: SmartSelectProps) {
       if (multiValues.length === 1) {
         return options.find((o) => o.value === multiValues[0])?.label ?? multiValues[0];
       }
-      return `${multiValues.length} ${placeholder.toLowerCase()}en`;
+      const label = placeholder.toLowerCase();
+return `${multiValues.length} ${label === 'merk' ? 'merken' : label === 'model' ? 'modellen' : label + 'en'}`;
     }
     return options.find((o) => o.value === singleValue)?.label ?? '';
   })();
