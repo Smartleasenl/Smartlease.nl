@@ -308,18 +308,11 @@ export function Hero() {
             className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight tracking-tight text-gray-900 transition-opacity duration-200"
             style={{ opacity: settingsLoaded ? 1 : 0 }}
           >
-            {(() => {
-              const words = heroTitle.split(' ');
-              const tealCount = 2;
-              const darkWords = words.slice(0, words.length - tealCount).join(' ');
-              const tealWords = words.slice(words.length - tealCount).join(' ');
-              return (
-                <>
-                  {darkWords}{' '}
-                  <span className="text-smartlease-teal">{tealWords}</span>
-                </>
-              );
-            })()}
+<>
+  Waar{' '}
+  <span className="text-smartlease-teal">slim</span>{' '}
+  {heroTitle.split(' ').slice(2).join(' ')}
+</>
           </h1>
 
           <p className="text-lg md:text-xl text-gray-500 mb-10 max-w-2xl mx-auto leading-relaxed">
