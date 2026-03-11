@@ -83,7 +83,7 @@ export function SmartSelect(props: SmartSelectProps) {
       if (multiValues.length === 1) {
         return options.find((o) => o.value === multiValues[0])?.label ?? multiValues[0];
       }
-      return `${multiValues.length} geselecteerd`;
+      return `${multiValues.length} ${placeholder.toLowerCase()}`;
     }
     return options.find((o) => o.value === singleValue)?.label ?? '';
   })();
