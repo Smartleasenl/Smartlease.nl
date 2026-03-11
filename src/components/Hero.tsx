@@ -95,7 +95,7 @@ export function Hero() {
   const modelCache = useRef<Record<string, ModelOption[]>>({});
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const heroTitle = siteSettings['hero_title'] || 'Slimmer leasen begint hier';
+  const heroTitle = siteSettings['hero_title'] || 'Waar slim leasen begint!';
 
   useEffect(() => {
     vehicleApi.getFilters().then(setFilters);
