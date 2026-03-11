@@ -45,7 +45,7 @@ interface Vergelijking {
 const SUPABASE_URL = 'https://bcjbghqrdlzwxgfuuxss.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamJnaHFyZGx6d3hnZnV1eHNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA1NjY0MDAsImV4cCI6MjA1NjE0MjQwMH0.xMEbRBnMGSGn1OycpY4cDJSIGWfAFVSfnQMkuLiZcI4';
 
-function fmt€(n: number | null | undefined) {
+function fmtEuro(n: number | null | undefined) {
   if (n === null || n === undefined) return '—';
   return new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
 }
@@ -235,8 +235,8 @@ export function OfferteVergelijkerPage() {
                     {pos ? (
                       <>
                         <p className="text-white/80 text-sm">Bij gelijke voorwaarden bespaar jij</p>
-                        <p className="text-3xl font-bold">{fmt€(besparing)} per maand</p>
-                        {vergelijking.eerlijke_besparing_totaal && <p className="text-white/70 text-sm mt-0.5">{fmt€(vergelijking.eerlijke_besparing_totaal)} totaal over de looptijd</p>}
+                        <p className="text-3xl font-bold">{fmtEuro(besparing)} per maand</p>
+                        {vergelijking.eerlijke_besparing_totaal && <p className="text-white/70 text-sm mt-0.5">{fmtEuro(vergelijking.eerlijke_besparing_totaal)} totaal over de looptijd</p>}
                       </>
                     ) : neu ? (
                       <>
@@ -247,7 +247,7 @@ export function OfferteVergelijkerPage() {
                     ) : (
                       <>
                         <p className="text-white/80 text-sm">Bij gelijke voorwaarden is hun maandbedrag lager</p>
-                        <p className="text-2xl font-bold">{fmt€(Math.abs(besparing ?? 0))} per maand verschil</p>
+                        <p className="text-2xl font-bold">{fmtEuro(Math.abs(besparing ?? 0))} per maand verschil</p>
                         <p className="text-white/70 text-sm mt-0.5">Vraag toch een offerte — wij kijken mee</p>
                       </>
                     )}
@@ -275,7 +275,7 @@ export function OfferteVergelijkerPage() {
                 <h3 className="font-bold text-gray-800 text-lg">Vergelijking op gelijke basis</h3>
                 <p className="text-gray-400 text-sm mt-0.5">
                   {[offerte.merk, offerte.model, offerte.uitvoering].filter(Boolean).join(' ')}
-                  {offerte.verkoopprijs ? ` • ${fmt€(offerte.verkoopprijs)}` : ''}
+                  {offerte.verkoopprijs ? ` • ${fmtEuro(offerte.verkoopprijs)}` : ''}
                 </p>
               </div>
               <div className="grid grid-cols-3 text-sm">
@@ -288,10 +288,10 @@ export function OfferteVergelijkerPage() {
                   <div className="font-semibold text-gray-700">Maandbedrag</div>
                   <div className="text-xs text-gray-400 mt-0.5">bij gelijke voorwaarden</div>
                 </div>
-                <div className="p-4 font-bold text-gray-800 text-lg border-t border-gray-50 border-l border-gray-100">{fmt€(vergelijking.concurrent_maandbedrag)}</div>
+                <div className="p-4 font-bold text-gray-800 text-lg border-t border-gray-50 border-l border-gray-100">{fmtEuro(vergelijking.concurrent_maandbedrag)}</div>
                 <div className={`p-4 font-bold text-lg border-t border-gray-50 border-l border-gray-100 ${pos ? 'text-emerald-600' : 'text-gray-800'}`}>
-                  {fmt€(vergelijking.smartlease_zelfde_params_maandbedrag)}
-                  {pos && besparing && <div className="text-xs text-emerald-500 font-normal mt-0.5">{fmt€(besparing)} goedkoper/mnd</div>}
+                  {fmtEuro(vergelijking.smartlease_zelfde_params_maandbedrag)}
+                  {pos && besparing && <div className="text-xs text-emerald-500 font-normal mt-0.5">{fmtEuro(besparing)} goedkoper/mnd</div>}
                 </div>
 
                 {/* Looptijd */}
@@ -303,7 +303,7 @@ export function OfferteVergelijkerPage() {
                 <div className="p-4 text-gray-500 border-t border-gray-50">Aanbetaling</div>
                 <div className="p-4 text-gray-800 border-t border-gray-50 border-l border-gray-100">
                   {fmtPct(vergelijking.concurrent_params.aanbetaling_pct)}
-                  {offerte.aanbetaling_bedrag ? <span className="text-gray-400 text-xs ml-1">({fmt€(offerte.aanbetaling_bedrag)})</span> : null}
+                  {offerte.aanbetaling_bedrag ? <span className="text-gray-400 text-xs ml-1">({fmtEuro(offerte.aanbetaling_bedrag)})</span> : null}
                 </div>
                 <div className="p-4 text-gray-500 border-t border-gray-50 border-l border-gray-100">zelfde ({fmtPct(vergelijking.concurrent_params.aanbetaling_pct)})</div>
 
@@ -311,7 +311,7 @@ export function OfferteVergelijkerPage() {
                 <div className="p-4 text-gray-500 border-t border-gray-50">Slottermijn</div>
                 <div className="p-4 text-gray-800 border-t border-gray-50 border-l border-gray-100">
                   {fmtPct(vergelijking.concurrent_params.slottermijn_pct)}
-                  {offerte.slottermijn_bedrag ? <span className="text-gray-400 text-xs ml-1">({fmt€(offerte.slottermijn_bedrag)})</span> : null}
+                  {offerte.slottermijn_bedrag ? <span className="text-gray-400 text-xs ml-1">({fmtEuro(offerte.slottermijn_bedrag)})</span> : null}
                 </div>
                 <div className="p-4 text-gray-500 border-t border-gray-50 border-l border-gray-100">zelfde ({fmtPct(vergelijking.concurrent_params.slottermijn_pct)})</div>
               </div>
@@ -322,7 +322,7 @@ export function OfferteVergelijkerPage() {
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Ons standaard aanbod (15% aanbetaling · 10% slottermijn · 72 mnd)</p>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Maandbedrag:</span>
-                    <span className="font-bold text-gray-800">{fmt€(vergelijking.smartlease_eigen_params_maandbedrag)}</span>
+                    <span className="font-bold text-gray-800">{fmtEuro(vergelijking.smartlease_eigen_params_maandbedrag)}</span>
                   </div>
                   <p className="text-xs text-gray-400 mt-1">Ander maandbedrag door andere aanbetaling/slottermijn — niet direct vergelijkbaar.</p>
                 </div>
