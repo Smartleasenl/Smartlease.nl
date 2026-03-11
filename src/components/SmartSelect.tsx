@@ -228,7 +228,7 @@ return `${multiValues.length} ${label === 'merk' ? 'merken' : label === 'model' 
       return (
         <span className="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
           <span className="text-sm font-semibold text-gray-900 truncate">
-            {multiValues.length} merken
+            {triggerLabel}
           </span>
           <button
             onMouseDown={(e) => e.stopPropagation()}
