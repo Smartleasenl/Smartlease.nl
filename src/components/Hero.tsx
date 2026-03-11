@@ -80,9 +80,12 @@ export function Hero() {
   const { settings: siteSettings, loaded: settingsLoaded } = useSiteSettings();
 
   const [filters, setFilters] = useState<FiltersResponse | null>(null);
-  const [selectedMerk, setSelectedMerk] = useState('');
+
+  // Multi-select: arrays instead of single strings
+  const [selectedMerken, setSelectedMerken] = useState<string[]>([]);
+  const [selectedModellen, setSelectedModellen] = useState<string[]>([]);
+
   const [models, setModels] = useState<ModelOption[]>([]);
-  const [selectedModel, setSelectedModel] = useState('');
   const [selectedBudget, setSelectedBudget] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [totalCount, setTotalCount] = useState<number | null>(null);
@@ -115,6 +118,28 @@ export function Hero() {
     modelCache.current[merk] = result;
     return result;
   };
+
+  // When merken change: load models for all selected merken, reset model selection
+  useEffect(() => {
+    setSelectedModellen([]);
+    if (selectedMerken.length === 0) {
+      setModels([]);
+      return;
+    }
+    // Load and merge models for all selected merken
+    Promise.all(selectedMerken.map(loadModels)).then((results) => {
+      // Merge and deduplicate by model name
+      const merged = new Map<string, ModelOption>();
+      results.flat().forEach((m) => {
+        if (merged.has(m.model)) {
+          merged.set(m.model, { ...m, count: (merged.get(m.model)!.count ?? 0) + (m.count ?? 0) });
+        } else {
+          merged.set(m.model, m);
+        }
+      });
+      setModels(Array.from(merged.values()).sort((a, b) => a.model.localeCompare(b.model)));
+    });
+  }, [selectedMerken]);
 
   useEffect(() => {
     const q = searchQuery.trim();
@@ -197,17 +222,24 @@ export function Hero() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (selectedMerk) {
-      params.append('merk', selectedMerk);
+
+    if (selectedMerken.length > 0) {
+      // Multiple merken: append each as separate param
+      selectedMerken.forEach((m) => params.append('merk', m));
     } else if (searchQuery.trim()) {
       params.append('q', searchQuery.trim());
     }
-    if (selectedModel) params.append('model', selectedModel);
+
+    if (selectedModellen.length > 0) {
+      selectedModellen.forEach((m) => params.append('model', m));
+    }
+
     if (selectedBudget) {
       const [min, max] = selectedBudget.split('-');
       if (min) params.append('budget_min', min);
       if (max) params.append('budget_max', max);
     }
+
     navigate(`/aanbod?${params.toString()}`);
   };
 
@@ -236,23 +268,12 @@ export function Hero() {
     setShowSuggestions(false);
   };
 
-  const handleMerkChange = (merk: string) => {
-    setSelectedMerk(merk);
-    setSelectedModel('');
-    if (merk) {
-      loadModels(merk).then(setModels);
-    } else {
-      setModels([]);
-    }
-  };
-
   const handleBrandClick = (brand: string) => {
     navigate(`/aanbod?merk=${encodeURIComponent(brand)}`);
   };
 
   const POPULAR_MERKEN = ['Audi', 'BMW', 'Mercedes-Benz', 'Volkswagen', 'Volvo'];
 
-  // Build option arrays for SmartSelect
   const merkOptions = [
     { value: '', label: 'Alle merken' },
     ...(filters?.merken.map((m) => ({ value: m, label: m })) ?? []),
@@ -363,11 +384,14 @@ export function Hero() {
               )}
             </div>
 
-            {/* ✅ SmartSelect dropdowns — vervangen native <select> */}
+            {/* SmartSelect dropdowns */}
             <div className="flex flex-col md:flex-row items-stretch gap-3">
+
+              {/* Merk — multi-select */}
               <SmartSelect
-                value={selectedMerk}
-                onChange={handleMerkChange}
+                multi
+                values={selectedMerken}
+                onChangeMulti={setSelectedMerken}
                 options={merkOptions}
                 placeholder="Merk"
                 icon={<Car className="h-4 w-4" />}
@@ -375,16 +399,19 @@ export function Hero() {
                 searchable
               />
 
+              {/* Model — multi-select, disabled als geen merk geselecteerd */}
               <SmartSelect
-                value={selectedModel}
-                onChange={setSelectedModel}
+                multi
+                values={selectedModellen}
+                onChangeMulti={setSelectedModellen}
                 options={modelOptions}
                 placeholder="Model"
-                disabled={!selectedMerk || models.length === 0}
+                disabled={selectedMerken.length === 0 || models.length === 0}
                 icon={<Layers className="h-4 w-4" />}
                 searchable
               />
 
+              {/* Budget — blijft single-select */}
               <SmartSelect
                 value={selectedBudget}
                 onChange={setSelectedBudget}
