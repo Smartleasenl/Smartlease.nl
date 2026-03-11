@@ -10,6 +10,7 @@ import { KeuzehulpPage } from './pages/KeuzehulpPage';
 import { ContactPage } from './pages/ContactPage';
 import { OffertePage } from './pages/OffertePage';
 import { BelMijPage } from './pages/BelMijPage';
+import { OfferteVergelijkerPage } from './pages/OfferteVergelijkerPage';
 import InfoPage from './pages/InfoPage';
 import ReviewsPage from './pages/ReviewsPage';
 import VeelgesteldeVragenPage from './pages/VeelgesteldeVragenPage';
@@ -33,14 +34,10 @@ import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
 import BlogBeheer from './pages/admin/BlogBeheer';
 
-// Vertel de browser: wij regelen scroll zelf
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
 }
 
-// Bekende InfoPage slugs onder /financial-lease/
-// Deze staan ALTIJD vóór de /:merk route zodat ze nooit per
-// ongeluk als automerk worden herkend
 const INFO_SLUGS = [
   'wat-is-financial-lease',
   'voor-ondernemers',
@@ -111,10 +108,8 @@ function App() {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/offerte" element={<OffertePage />} />
           <Route path="/bel-mij" element={<BelMijPage />} />
+          <Route path="/offerte-vergelijker" element={<OfferteVergelijkerPage />} />
 
-          {/* ── STAP 1: Bekende InfoPage slugs EERST ──
-              bijv. /financial-lease/wat-is-financial-lease → InfoPage ✅
-              Staan vóór /:merk zodat ze nooit als automerk worden herkend */}
           {INFO_SLUGS.map((slug) => (
             <Route
               key={slug}
@@ -123,24 +118,15 @@ function App() {
             />
           ))}
 
-          {/* ── STAP 2: SEO merk/model landingspagina's ──
-              bijv. /financial-lease/volkswagen/golf → MerkModelPage ✅
-              bijv. /financial-lease/volkswagen      → MerkModelPage ✅ */}
           <Route path="/financial-lease/:merk/:model" element={<MerkModelPage />} />
           <Route path="/financial-lease/:merk" element={<MerkModelPage />} />
-
-          {/* ── STAP 3: Wildcard fallback voor overige /financial-lease/* ── */}
           <Route path="/financial-lease/*" element={<InfoPage />} />
 
-          {/* Specifieke redirects VÓÓR de meer-informatie/* wildcard */}
           <Route path="/meer-informatie/veelgestelde-vragen" element={<Navigate to="/veelgestelde-vragen" replace />} />
           <Route path="/meer-informatie/reviews" element={<Navigate to="/reviews" replace />} />
           <Route path="/meer-informatie/financial-lease-blog" element={<Navigate to="/blog" replace />} />
-
-          {/* Wildcard InfoPage voor meer-informatie */}
           <Route path="/meer-informatie/*" element={<InfoPage />} />
 
-          {/* Dedicated pages */}
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/veelgestelde-vragen" element={<VeelgesteldeVragenPage />} />
           <Route path="/blog" element={<BlogPage />} />
