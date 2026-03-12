@@ -24,14 +24,16 @@ import {
   Disc,
 } from 'lucide-react';
 import { vehicleApi } from '../services/api';
+import { proxyThumb, getVehicleImageUrl } from '../utils/imageProxy';
 
 // ─── Image helper ────────────────────────────────────────────────────────────
 
 function getImg(v: any): string {
-  if (v.external_id) return `/img-proxy?id=${v.external_id}&s=640&n=1`;
-  if (v.small_picture) return `/img-proxy?url=${encodeURIComponent(v.small_picture)}`;
+  if (v.external_id) return proxyThumb(v.external_id, 640, 1);
+  if (v.small_picture) return getVehicleImageUrl(v.small_picture, 640);
   return '';
 }
+
 function makeSlug(v: any): string {
   const raw = `${v.merk || ''}-${v.model || ''}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return raw || 'auto';
