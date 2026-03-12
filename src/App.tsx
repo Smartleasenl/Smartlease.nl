@@ -33,6 +33,7 @@ import FooterLinksAdmin from './pages/admin/FooterLinksAdmin';
 import ReviewsBeheer from './pages/admin/ReviewsBeheer';
 import FaqBeheer from './pages/admin/FaqBeheer';
 import BlogBeheer from './pages/admin/BlogBeheer';
+import LeadDetailPage from './pages/admin/LeadDetailPage';
 
 if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
@@ -95,6 +96,7 @@ function App() {
           <Route path="blog-beheer" element={<BlogBeheer />} />
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
+          <Route path="/admin/leads/:id" element={<LeadDetailPage />} />
         </Route>
 
         {/* Public routes */}
