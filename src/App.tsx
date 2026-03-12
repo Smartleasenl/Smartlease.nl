@@ -87,6 +87,7 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="site-instellingen" element={<SiteInstellingenPage />} />
           <Route path="leads" element={<LeadsPage />} />
+          <Route path="leads/:id" element={<LeadDetailPage />} />
           <Route path="paginas" element={<PaginasPage />} />
           <Route path="pagina-beheer" element={<PaginaBeheer />} />
           <Route path="footer-beheer" element={<FooterBeheer />} />
@@ -96,7 +97,6 @@ function App() {
           <Route path="blog-beheer" element={<BlogBeheer />} />
           <Route path="statistieken" element={<StatistiekenPage />} />
           <Route path="dealers" element={<DealersPage />} />
-          <Route path="/admin/leads/:id" element={<LeadDetailPage />} />
         </Route>
 
         {/* Public routes */}
