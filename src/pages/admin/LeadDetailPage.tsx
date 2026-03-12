@@ -191,7 +191,11 @@ export default function LeadDetailPage() {
                 <p>{lead.vehicle_info}</p>
                 {lead.vehicle_id && (
                   <a
-                    href={`/auto/${lead.vehicle_id}/voertuig`}
+                    href={`/auto/${lead.vehicle_id}/${
+                      lead.vehicle_info
+                        ? lead.vehicle_info.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60)
+                        : 'auto'
+                    }`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs text-smartlease-teal hover:underline mt-0.5"
