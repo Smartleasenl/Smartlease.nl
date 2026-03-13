@@ -60,8 +60,19 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
   );
   const [ranges, setRanges] = useState(DEFAULT_RANGES);
 
-  const selectedMerken = filters.merk ? (filters.merk as string).split(',') : [];
-  const selectedModellen = filters.model ? (filters.model as string).split(',') : [];
+  // Veilig omzetten naar array, ongeacht of het string of string[] is
+  const selectedMerken = filters.merk
+    ? Array.isArray(filters.merk)
+      ? filters.merk
+      : (filters.merk as string).split(',').filter(Boolean)
+    : [];
+
+  const selectedModellen = filters.model
+    ? Array.isArray(filters.model)
+      ? filters.model
+      : (filters.model as string).split(',').filter(Boolean)
+    : [];
+
   const searchQuery = (filters.zoek as string) || '';
 
   useEffect(() => {
@@ -105,14 +116,14 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
 
   const handleMerkenChange = (merken: string[]) => {
     const newFilters = { ...filters };
-    newFilters.merk = merken.length > 0 ? merken.join(',') : undefined;
+    newFilters.merk = merken.length > 0 ? merken : undefined;
     newFilters.model = undefined;
     onFiltersChange(newFilters);
   };
 
   const handleModellenChange = (modellen: string[]) => {
     const newFilters = { ...filters };
-    newFilters.model = modellen.length > 0 ? modellen.join(',') : undefined;
+    newFilters.model = modellen.length > 0 ? modellen : undefined;
     onFiltersChange(newFilters);
   };
 
@@ -223,7 +234,6 @@ export function Filters({ filters, onFiltersChange, totalResults }: FiltersProps
   const activeChips = getActiveChips();
   const activeFilterCount = activeChips.length;
 
-  // Veilige fallbacks voor alle filter arrays
   const merkenOptions = (availableFilters?.merken ?? []).map((m) => ({ label: m }));
   const modelOptions = models.map((m) => ({ label: m.model, count: m.count }));
   const categorieen = availableFilters?.categorieen ?? [];
