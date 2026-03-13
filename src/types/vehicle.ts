@@ -34,8 +34,8 @@ export interface VehicleDetail extends Vehicle {
 }
 
 export interface SearchParams {
-  merk?: string;
-  model?: string;
+  merk?: string | string[];
+  model?: string | string[];
   categorie?: string;
   categorie_not?: string;
   categorie_in?: string;
@@ -56,6 +56,7 @@ export interface SearchParams {
   sort?: 'maandprijs_laag' | 'maandprijs_hoog' | 'prijs_laag' | 'prijs_hoog' | 'jaar_nieuw' | 'jaar_oud' | 'km_laag' | 'km_hoog' | 'nieuwste';
   page?: number;
   per_page?: number;
+  [key: string]: string | string[] | number | undefined;
 }
 
 export interface SearchResponse {
@@ -70,8 +71,8 @@ export interface FiltersResponse {
   merken: string[];
   brandstoffen: string[];
   transmissies: string[];
-  categorieen: string[];   // ← geen ë, plain ASCII
-  kleuren: string[];       // ← nieuw toegevoegd
+  categorieen: string[];
+  kleuren: string[];
   ranges?: {
     minJaar: number;
     maxJaar: number;
@@ -83,4 +84,4 @@ export interface FiltersResponse {
 export interface ModelOption {
   model: string;
   count: number;
-} 
+}
