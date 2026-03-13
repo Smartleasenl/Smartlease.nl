@@ -11,21 +11,38 @@ function parseURL(search: string) {
   const filters: SearchParams = {};
   let page = 1;
   let sort = '';
+
   sp.forEach((value, key) => {
-    if (key === 'page') page = parseInt(value) || 1;
-    else if (key === 'sort') sort = value;
-    else if (key === 'bodytype' || key === 'fuel' || key === 'type') {
-      // Skip these - we handle them separately
+    if (key === 'page') {
+      page = parseInt(value) || 1;
+    } else if (key === 'sort') {
+      sort = value;
+    } else if (key === 'bodytype' || key === 'fuel' || key === 'type') {
+      // handled separately
+    } else if (key === 'merk' || key === 'model') {
+      const existing = filters[key];
+      if (existing === undefined) {
+        filters[key] = value;
+      } else {
+        filters[key] = (Array.isArray(existing) ? existing : [existing as string]).concat(value);
+      }
+    } else {
+      filters[key] = value;
     }
-    else filters[key] = value;
   });
+
   return { filters, page, sort };
 }
 
 function buildQS(filters: SearchParams, page: number, sort: string) {
   const params = new URLSearchParams();
   Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') params.append(key, String(value));
+    if (value === undefined || value === '') return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => params.append(key, String(v)));
+    } else {
+      params.append(key, String(value));
+    }
   });
   if (page > 1) params.append('page', String(page));
   if (sort) params.append('sort', sort);
@@ -54,7 +71,7 @@ export function OccasionsPage() {
 
     setCurrentPage(1);
 
-    setFilters(prev => {
+    setFilters((prev) => {
       const newFilters = { ...prev };
 
       if (urlBodytype === 'personenauto') {
@@ -162,7 +179,6 @@ export function OccasionsPage() {
 
   return (
     <main className="bg-[#f8f9fb] min-h-screen">
-      {/* Header with filters */}
       <div className="bg-white border-b border-gray-200/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           <div className="mb-5 md:mb-6">
@@ -177,7 +193,6 @@ export function OccasionsPage() {
         </div>
       </div>
 
-      {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
         <VehicleGrid
           data={searchData}
