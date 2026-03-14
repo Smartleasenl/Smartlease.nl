@@ -110,10 +110,9 @@ export default async (req: Request, context: Context): Promise<Response> => {
     maandprijs && `Vanaf €${maandprijs},- p/m`,
   ].filter(Boolean).join(" · ");
 
-  const imageUrl = vehicle.og_image_url ||
-    (vehicle.small_picture
-      ? `${IMG_PROXY}?url=${encodeURIComponent(vehicle.small_picture)}`
-      : "https://smartlease.nl/smart-lease-logo.gif");
+const imageUrl = vehicle.og_image_url ||
+  vehicle.small_picture ||
+  "https://smartlease.nl/smart-lease-logo.gif";
 
   return new Response(buildHtml({ title, description, imageUrl, pageUrl }), {
     status: 200,
