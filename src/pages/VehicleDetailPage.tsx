@@ -273,25 +273,25 @@ export function VehicleDetailPage() {
       ?? (vehicle.verkoopprijs - aanbetaling);
     const looptijd = calculatorState ? calculatorState.looptijd : 72;
 
-    const lines = [
-      'Hallo, ik heb interesse in de volgende auto:',
-      '',
-      `\u{1F697} ${vehicle.merk} ${vehicle.model}${vehicle.uitvoering ? ' ' + vehicle.uitvoering : ''}`,
-      `\u{1F4C5} Bouwjaar: ${vehicle.bouwjaar_year}`,
-      `\u{1F4CD} Kilometerstand: ${formatKm(vehicle.kmstand)}`,
-      `\u26FD Brandstof: ${vehicle.brandstof}`,
-      '',
-      `\u{1F4B0} Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
-`  • Aanbetaling: ${formatPrice(aanbetaling)}`,
-`  • Financieringsbedrag: ${formatPrice(financieringsbedrag)}`,
-`  • Looptijd: ${looptijd} maanden`,
-`  • Slottermijn: ${formatPrice(slottermijn)}`,
-      ...(maandbedrag > 0 ? [`\u{1F4C6} Maandbedrag: \u20AC${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
-      '',
-      `\u{1F517} ${autoUrl}`,
-      '',
-      'Kunnen jullie mij meer informatie geven?',
-    ];
+const lines = [
+  'Hallo, ik heb interesse in de volgende auto:',
+  '',
+  `${vehicle.merk} ${vehicle.model}${vehicle.uitvoering ? ' ' + vehicle.uitvoering : ''}`,
+  `Bouwjaar: ${vehicle.bouwjaar_year}`,
+  `Kilometerstand: ${formatKm(vehicle.kmstand)}`,
+  `Brandstof: ${vehicle.brandstof}`,
+  '',
+  `Aankoopprijs: ${formatPrice(vehicle.verkoopprijs)}`,
+  `  - Aanbetaling: ${formatPrice(aanbetaling)}`,
+  `  - Financieringsbedrag: ${formatPrice(financieringsbedrag)}`,
+  `  - Looptijd: ${looptijd} maanden`,
+  `  - Slottermijn: ${formatPrice(slottermijn)}`,
+  ...(maandbedrag > 0 ? [`Maandbedrag: €${maandbedrag.toLocaleString('nl-NL')}/mnd`] : []),
+  '',
+  autoUrl,
+  '',
+  'Kunnen jullie mij meer informatie geven?',
+];
 
     const message = lines.join('\n');
     window.open(`https://wa.me/31613669328?text=${encodeURIComponent(message)}`, '_blank');
