@@ -2,6 +2,7 @@ import type { Config, Context } from "@netlify/edge-functions";
 
 const SUPABASE_URL = "https://bcjbghqrdlzwxgfuuxss.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamJnaHFyZGx6d3hnZnV1eHNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE4MzExNTEsImV4cCI6MjAzNzQwNzE1MX0.mL3MmFGjkMiaCMNhL6f2MghYF9rRORSY-ZSb-YKp4tM";
+const IMG_PROXY = "https://bcjbghqrdlzwxgfuuxss.supabase.co/functions/v1/image-proxy";
 
 const BOT_AGENTS = [
   'whatsapp', 'facebookexternalhit', 'twitterbot', 'linkedinbot',
@@ -61,16 +62,14 @@ export default async (req: Request, context: Context): Promise<Response> => {
   const vehicleId = match[1];
   const userAgent = req.headers.get("user-agent") || "";
 
-  // Niet-bots: doorsturen naar SPA via context.next()
   if (!isBot(userAgent)) {
     return context.next();
   }
 
-  // Bot: haal voertuigdata op
   let vehicle: any = null;
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${vehicleId}&select=id,merk,model,uitvoering,verkoopprijs,bouwjaar_year,kmstand,og_image_url&is_active=eq.true`,
+      `${SUPABASE_URL}/rest/v1/vehicles?id=eq.${vehicleId}&select=id,merk,model,uitvoering,verkoopprijs,bouwjaar_year,kmstand,og_image_url,small_picture&is_active=eq.true`,
       {
         headers: {
           apikey: SUPABASE_ANON_KEY,
@@ -112,7 +111,9 @@ export default async (req: Request, context: Context): Promise<Response> => {
   ].filter(Boolean).join(" · ");
 
   const imageUrl = vehicle.og_image_url ||
-    `${SUPABASE_URL}/storage/v1/object/public/vehicle-images/thumbnails/${vehicleId}.jpg`;
+    (vehicle.small_picture
+      ? `${IMG_PROXY}?url=${encodeURIComponent(vehicle.small_picture)}`
+      : "https://smartlease.nl/smart-lease-logo.gif");
 
   return new Response(buildHtml({ title, description, imageUrl, pageUrl }), {
     status: 200,
